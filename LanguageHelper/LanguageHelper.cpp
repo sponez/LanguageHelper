@@ -429,7 +429,7 @@ void addWordFunction()
 
 	vector<wstring> languages = { wstringStandartForm(firstLanguage), wstringStandartForm(secondLanguage) };
 	vector<void (*)()> addWordFunctions = { addFirstLanguageWord, addSecondLanguagehWord };
-	consoleMenu languageOfWord(languages, addWordFunctions);
+	wconsoleMenu languageOfWord(languages, addWordFunctions);
 	languageOfWord.select();
 }
 
@@ -437,7 +437,7 @@ void testingFunction()
 {
 	vector<wstring> testingTypes = { wstringStandartForm(firstLanguage) + L" to " + secondLanguage , wstringStandartForm(secondLanguage) + L" to " + firstLanguage };
 	vector<void (*)()> testingFunctions = { firstLanguageToSecondLanguageTest, secondLanguageToFirstLanguageTest };
-	consoleMenu testingTypeMenu(testingTypes, testingFunctions);
+	wconsoleMenu testingTypeMenu(testingTypes, testingFunctions);
 	testingTypeMenu.select();
 }
 
@@ -477,7 +477,7 @@ int main(int argc, wchar_t* argv[])
 
 	vector<wstring> options = { L"Testing" , L"Add word" };
 	vector<void (*)()> functions = { testingFunction, addWordFunction };
-	consoleMenu languageHelperMenu(options, functions, true);
+	wconsoleMenu languageHelperMenu(options, functions, true);
 
 	srand(time(NULL));
 	languageHelperMenu.select();
