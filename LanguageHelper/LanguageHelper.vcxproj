@@ -142,7 +142,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="EnglishHelper.cpp" />
+    <ClCompile Include="LanguageHelper.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ConsoleMenu.h" />
