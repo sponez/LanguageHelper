@@ -8,14 +8,15 @@
 #include <vector>
 #include <algorithm>
 #include <string>
-#include <time.h>
 #include <cmath>
+#include <random>
 #include "ConsoleMenu.h"
 
 using namespace std;
 wstring globalPath;
 wstring firstLanguage;
 wstring secondLanguage;
+mt19937 radnomNumber(time(0));
 
 void createDirrectory(wstring path)
 {
@@ -108,7 +109,7 @@ wstring randomWordFrom(wstring path)
 		words.push_back(word);
 	}
 
-	int amountOfWords = words.size();
+	unsigned int amountOfWords = words.size();
 	if (amountOfWords == 0)
 	{
 		wcout << "Add some words at first" << endl;
@@ -117,7 +118,7 @@ wstring randomWordFrom(wstring path)
 	}
 	else
 	{
-		int randomIndex = rand() % amountOfWords;
+		int randomIndex = radnomNumber() % amountOfWords;
 		return words[randomIndex];
 	}
 }
@@ -478,7 +479,5 @@ int main(int argc, wchar_t* argv[])
 	vector<wstring> options = { L"Testing" , L"Add word" };
 	vector<void (*)()> functions = { testingFunction, addWordFunction };
 	wconsoleMenu languageHelperMenu(options, functions, true);
-
-	srand(time(NULL));
 	languageHelperMenu.select();
 }
