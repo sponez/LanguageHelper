@@ -55,7 +55,7 @@ void removeTextInBracket(wstring& string)
 
 			if (string[i] == L')' && leftBracket > -1)
 			{
-				int lengthToRightBracket = i - leftBracket;
+				int lengthToRightBracket = i - leftBracket + 1;
 				string.erase(leftBracket, lengthToRightBracket);
 				i = leftBracket;
 				break;
@@ -152,9 +152,16 @@ void testFunction(wstring language)
 	createDirrectory(languageDirrectory);
 
 	int amountOfRepeats;
-	wcout << L"Enter amount of test repetitions: ";
+	wcout << L"Enter amount of test repetitions (greater than zero): ";
 	wcin >> amountOfRepeats;
 	wcin.ignore(LLONG_MAX, '\n');
+
+	if (amountOfRepeats <= 0)
+	{
+		wcout << L"Amount of test repetitions can't be less than one." << endl;
+		_wsystem(L"pause");
+		return;
+	}
 
 	int amountOfCorrectAnswers = 0;
 	for (int i = 0; i < amountOfRepeats; i++)
@@ -174,11 +181,11 @@ void testFunction(wstring language)
 		wstringToLower(answer);
 
 		double maxMatchRate = 0.0;
-		vector<wstring> anotherLanguageTranslates;
+		vector<wstring> translations;
 		for (wstring anotherLanguageWord; getline(wordFile, anotherLanguageWord);)
 		{
 			removeTextInBracket(anotherLanguageWord);
-			anotherLanguageTranslates.push_back(anotherLanguageWord);
+			translations.push_back(anotherLanguageWord);
 			maxMatchRate = max(maxMatchRate, matchWords(anotherLanguageWord, answer));
 		}
 		wordFile.close();
@@ -187,15 +194,15 @@ void testFunction(wstring language)
 		{
 			wcout << L"Absolutely correct!" << endl;
 
-			if (anotherLanguageTranslates.size() == 1)
+			if (translations.size() == 1)
 			{
-				wcout << L"Right is " << anotherLanguageTranslates[0] << endl;
+				wcout << L"Right is " << translations[0] << endl;
 			}
 			else
 			{
 				wcout << L"Right is one of:" << endl;
-				for (int j = 0; j < anotherLanguageTranslates.size(); j++)
-					wcout << anotherLanguageTranslates[j] << endl;
+				for (int j = 0; j < translations.size(); j++)
+					wcout << translations[j] << endl;
 			}
 
 			amountOfCorrectAnswers++;
@@ -206,15 +213,15 @@ void testFunction(wstring language)
 		{
 			wcout << L"Almost correct." << endl;
 
-			if (anotherLanguageTranslates.size() == 1)
+			if (translations.size() == 1)
 			{
-				wcout << L"Correct would be " << anotherLanguageTranslates[0] << endl;
+				wcout << L"Correct would be " << translations[0] << endl;
 			}
 			else
 			{
 				wcout << L"Correct would be one of:" << endl;
-				for (int j = 0; j < anotherLanguageTranslates.size(); j++)
-					wcout << anotherLanguageTranslates[j] << endl;
+				for (int j = 0; j < translations.size(); j++)
+					wcout << translations[j] << endl;
 			}
 
 			wcout << L"But it will be scored!" << endl;
@@ -227,15 +234,15 @@ void testFunction(wstring language)
 		{
 			wcout << L"Nope." << endl;
 
-			if (anotherLanguageTranslates.size() == 1)
+			if (translations.size() == 1)
 			{
-				wcout << L"Correct would be " << anotherLanguageTranslates[0] << endl;
+				wcout << L"Correct would be " << translations[0] << endl;
 			}
 			else
 			{
 				wcout << L"Correct would be one of:" << endl;
-				for (int j = 0; j < anotherLanguageTranslates.size(); j++)
-					wcout << anotherLanguageTranslates[j] << endl;
+				for (int j = 0; j < translations.size(); j++)
+					wcout << translations[j] << endl;
 			}
 
 			wcout << L"It won't be scored!" << endl;
@@ -257,7 +264,6 @@ void addWordFunction(wstring language)
 	wstring word;
 	wcout << L"Enter the word: ";
 	getline(wcin, word);
-	wstringToLower(word);
 
 	if (word.length() == 0)
 	{
@@ -266,28 +272,30 @@ void addWordFunction(wstring language)
 		return;
 	}
 
+	wstringToLower(word);
+
 	wofstream wordFile(languageDirrectory + L"\\" + word);
 	wordFile.imbue(locale(wordFile.getloc(), new codecvt_utf8<wchar_t, 0x10ffff, consume_header>()));
 
-	wstring anotherLanguageTranslate = L" ";
-	vector<wstring> anotherLanguageTranslates;
-	while (anotherLanguageTranslate.length() > 0)
+	wstring translation = L" ";
+	vector<wstring> translations;
+	while (translation.length() > 0)
 	{
-		wcout << L"Enter a translate (if you want to exit just leave it empty): ";
-		getline(wcin, anotherLanguageTranslate);
-		wstringToLower(anotherLanguageTranslate);
+		wcout << L"Enter a translation (if you want to exit just leave it empty): ";
+		getline(wcin, translation);
+		wstringToLower(translation);
 
-		if (anotherLanguageTranslate.length() > 0)
+		if (translation.length() > 0)
 		{
-			anotherLanguageTranslates.push_back(anotherLanguageTranslate);
-			wordFile << anotherLanguageTranslate << endl;
+			translations.push_back(translation);
+			wordFile << translation << endl;
 		}
 	}
 	wordFile.close();
 
-	if (anotherLanguageTranslates.size() == 0)
+	if (translations.size() == 0)
 	{
-		wcout << "No one translates haven't entered." << endl;
+		wcout << "No one translations haven't entered." << endl;
 		_wsystem(L"pause");
 
 		wstring command = L"del " + languageDirrectory + L"\\" + word;
@@ -296,13 +304,13 @@ void addWordFunction(wstring language)
 	}
 }
 
-void deleteWordFunction(wstring language)
+void addTranslationFunction(wstring language)
 {
 	wstring wordDirrectory = globalPath + L"\\" + wstringStandartForm(language) + L"Words";
 	createDirrectory(wordDirrectory);
 
 	wstring word;
-	wcout << L"Enter the word you want to delete: ";
+	wcout << L"Enter the word you want to add the translation for: ";
 	getline(wcin, word);
 
 	if (word.length() == 0)
@@ -322,32 +330,198 @@ void deleteWordFunction(wstring language)
 		_wsystem(L"pause");
 		return;
 	}
-	else
+
+	wofstream wordFile(wordDirrectory, ios::app);
+	wordFile.imbue(locale(wordFile.getloc(), new codecvt_utf8<wchar_t, 0x10ffff, consume_header>()));
+
+	wstring translation = L" ";
+	while (translation.length() > 0)
 	{
+		wcout << L"Enter a translation (if you want to exit just leave it empty): ";
+		getline(wcin, translation);
+		wstringToLower(translation);
+
+		if (translation.length() > 0)
+			wordFile << translation << endl;
+	}
+	wordFile.close();
+}
+
+void removeTranslationFunction(wstring language)
+{
+	wstring wordDirrectory = globalPath + L"\\" + wstringStandartForm(language) + L"Words";
+	createDirrectory(wordDirrectory);
+
+	wstring word;
+	wcout << L"Enter the word you want to remove the translation for: ";
+	getline(wcin, word);
+
+	if (word.length() == 0)
+	{
+		wcout << L"Empty word" << endl;
+		_wsystem(L"pause");
+		return;
+	}
+
+	wstringToLower(word);
+	wordDirrectory += L"\\" + word;
+
+	struct _stat buf;
+	if (_wstat(&wordDirrectory[0], &buf) != 0)
+	{
+		wcout << L"This word doesn't exist." << endl;
+		_wsystem(L"pause");
+		return;
+	}
+
+	vector<wstring> translations;
+	wifstream wordFileR(wordDirrectory);
+	wordFileR.imbue(locale(wordFileR.getloc(), new codecvt_utf8<wchar_t, 0x10ffff, consume_header>()));
+	for(wstring translation; getline(wordFileR, translation);)
+		translations.push_back(translation);
+	wordFileR.close();
+	
+
+	wstring translationToRemove = L" ";
+	while (translationToRemove.length() > 0)
+	{
+		wcout << L"Enter the translation you want to remove (if you want to exit just leave it empty): ";
+		getline(wcin, translationToRemove);
+		wstringToLower(translationToRemove);
+
+		vector<wstring>::iterator positionOfTranslationToRemove = find(translations.begin(), translations.end(), translationToRemove);
+		if (positionOfTranslationToRemove != translations.end())
+		{
+			translations.erase(positionOfTranslationToRemove);
+
+			if (translations.size() == 0)
+			{
+				wcout << L"You have removed all existed translations. The word will be deleted." << endl;
+				_wsystem(L"pause");
+
+				wstring command = L"del " + wordDirrectory;
+				_wsystem(&command[0]);
+				return;
+			}
+		}
+		else
+		{
+			wcout << L"The translation doesn't exist. Try again." << endl;
+		}
+	}
+
+	wofstream wordFileW(wordDirrectory);
+	wordFileW.imbue(locale(wordFileW.getloc(), new codecvt_utf8<wchar_t, 0x10ffff, consume_header>()));
+	for (int i = 0; i < translations.size(); i++)
+		wordFileW << translations[i] << endl;
+	wordFileW.close();
+}
+
+void rewriteTranslationFunction(wstring language)
+{
+	wstring wordDirrectory = globalPath + L"\\" + wstringStandartForm(language) + L"Words";
+	createDirrectory(wordDirrectory);
+
+	wstring word;
+	wcout << L"Enter the word you want to rewrite translations for: ";
+	getline(wcin, word);
+
+	if (word.length() == 0)
+	{
+		wcout << L"Empty word" << endl;
+		_wsystem(L"pause");
+		return;
+	}
+
+	wstringToLower(word);
+	wordDirrectory += L"\\" + word;
+
+	struct _stat buf;
+	if (_wstat(&wordDirrectory[0], &buf) != 0)
+	{
+		wcout << L"This word doesn't exist." << endl;
+		_wsystem(L"pause");
+		return;
+	}
+
+	wofstream wordFile(wordDirrectory);
+	wordFile.imbue(locale(wordFile.getloc(), new codecvt_utf8<wchar_t, 0x10ffff, consume_header>()));
+
+	wstring translation = L" ";
+	vector<wstring> translations;
+	while (translation.length() > 0)
+	{
+		wcout << L"Enter a translation (if you want to exit just leave it empty): ";
+		getline(wcin, translation);
+		wstringToLower(translation);
+
+		if (translation.length() > 0)
+		{
+			translations.push_back(translation);
+			wordFile << translation << endl;
+		}
+	}
+	wordFile.close();
+
+	if (translations.size() == 0)
+	{
+		wcout << "No one translations haven't entered. The word will be removed." << endl;
+		_wsystem(L"pause");
+
 		wstring command = L"del " + wordDirrectory;
 		_wsystem(&command[0]);
-
-		wcout << "Done!" << endl;
-		_wsystem(L"pause");
 		return;
 	}
 }
 
-void firstLanguageToSecondLanguageTest() { testFunction(firstLanguage); }
-void secondLanguageToFirstLanguageTest() { testFunction(secondLanguage); }
-void addFirstLanguageWord() { addWordFunction(firstLanguage); }
-void addSecondLanguagehWord() { addWordFunction(secondLanguage); }
-void deleteFirstLanguageWord() { deleteWordFunction(firstLanguage); }
-void deleteSecondLanguagehWord() { deleteWordFunction(secondLanguage); }
-
-void deleteWordOption()
+void deleteWordFunction(wstring language)
 {
-	vector<wstring> languages = { wstringStandartForm(firstLanguage), wstringStandartForm(secondLanguage) };
-	vector<void (*)()> deleteWordFunctions = { deleteFirstLanguageWord, deleteSecondLanguagehWord };
-	wconsoleMenu languageOfWord(languages, deleteWordFunctions);
-	languageOfWord.select();
+	wstring wordDirrectory = globalPath + L"\\" + wstringStandartForm(language) + L"Words";
+	createDirrectory(wordDirrectory);
+
+	wstring word;
+	wcout << L"Enter the word you want to delete: ";
+	getline(wcin, word);
+	wstringToLower(word);
+
+	if (word.length() == 0)
+	{
+		wcout << L"Empty word" << endl;
+		_wsystem(L"pause");
+		return;
+	}
+
+	wstringToLower(word);
+	wordDirrectory += L"\\" + word;
+
+	struct _stat buf;
+	if (_wstat(&wordDirrectory[0], &buf) != 0)
+	{
+		wcout << L"This word doesn't exist." << endl;
+		_wsystem(L"pause");
+		return;
+	}
+
+	wstring command = L"del " + wordDirrectory;
+	_wsystem(&command[0]);
+
+	wcout << "Done!" << endl;
+	_wsystem(L"pause");
+	return;
 }
 
+void firstLanguageToSecondLanguageTest() { testFunction(firstLanguage); }
+void secondLanguageToFirstLanguageTest() { testFunction(secondLanguage); }
+void testingOption()
+{
+	vector<wstring> testingTypes = { wstringStandartForm(firstLanguage) + L" to " + secondLanguage , wstringStandartForm(secondLanguage) + L" to " + firstLanguage };
+	vector<void (*)()> testingFunctions = { firstLanguageToSecondLanguageTest, secondLanguageToFirstLanguageTest };
+	wconsoleMenu testingTypeMenu(testingTypes, testingFunctions);
+	testingTypeMenu.select();
+}
+
+void addFirstLanguageWord() { addWordFunction(firstLanguage); }
+void addSecondLanguagehWord() { addWordFunction(secondLanguage); }
 void addWordOption()
 {
 	vector<wstring> languages = { wstringStandartForm(firstLanguage), wstringStandartForm(secondLanguage) };
@@ -356,12 +530,45 @@ void addWordOption()
 	languageOfWord.select();
 }
 
-void testingOption()
+
+void addTranslationForFirstLanguageFunction() { addTranslationFunction(firstLanguage); }
+void removeTranslationForFirstLanguageFunction() { removeTranslationFunction(firstLanguage); }
+void rewriteTranslationForFirstLanguageFunction() { rewriteTranslationFunction(firstLanguage); }
+void updateFirstLanguageWord() 
 {
-	vector<wstring> testingTypes = { wstringStandartForm(firstLanguage) + L" to " + secondLanguage , wstringStandartForm(secondLanguage) + L" to " + firstLanguage };
-	vector<void (*)()> testingFunctions = { firstLanguageToSecondLanguageTest, secondLanguageToFirstLanguageTest };
-	wconsoleMenu testingTypeMenu(testingTypes, testingFunctions);
-	testingTypeMenu.select();
+	vector<wstring> options = { L"Add translation", L"Remove translation", L"Rewrite translations" };
+	vector<void (*)()> updateWordFunctions = { addTranslationForFirstLanguageFunction, removeTranslationForFirstLanguageFunction, rewriteTranslationForFirstLanguageFunction };
+	wconsoleMenu languageOfWord(options, updateWordFunctions);
+	languageOfWord.select();
+}
+
+void addTranslationForSecondLanguageFunction() { addTranslationFunction(secondLanguage); }
+void removeTranslationForSecondLanguageFunction() { removeTranslationFunction(secondLanguage); }
+void rewriteTranslationForSecondLanguageFunction() { rewriteTranslationFunction(secondLanguage); }
+void updateSecondLanguagehWord() 
+{
+	vector<wstring> options = { L"Add translation", L"Remove translation", L"Rewrite translations" };
+	vector<void (*)()> updateWordFunctions = { addTranslationForSecondLanguageFunction, removeTranslationForSecondLanguageFunction, rewriteTranslationForSecondLanguageFunction };
+	wconsoleMenu languageOfWord(options, updateWordFunctions);
+	languageOfWord.select();
+}
+
+void updateWordOption()
+{
+	vector<wstring> languages = { wstringStandartForm(firstLanguage), wstringStandartForm(secondLanguage) };
+	vector<void (*)()> updateWordFunctions = { updateFirstLanguageWord, updateSecondLanguagehWord };
+	wconsoleMenu languageOfWord(languages, updateWordFunctions);
+	languageOfWord.select();
+}
+
+void deleteFirstLanguageWord() { deleteWordFunction(firstLanguage); }
+void deleteSecondLanguagehWord() { deleteWordFunction(secondLanguage); }
+void deleteWordOption()
+{
+	vector<wstring> languages = { wstringStandartForm(firstLanguage), wstringStandartForm(secondLanguage) };
+	vector<void (*)()> deleteWordFunctions = { deleteFirstLanguageWord, deleteSecondLanguagehWord };
+	wconsoleMenu languageOfWord(languages, deleteWordFunctions);
+	languageOfWord.select();
 }
 
 int main(int argc, wchar_t* argv[])
@@ -398,8 +605,8 @@ int main(int argc, wchar_t* argv[])
 		languages.close();
 	}
 
-	vector<wstring> options = { L"Testing" , L"Add word" , L"Delete word" };
-	vector<void (*)()> functions = { testingOption, addWordOption, deleteWordOption };
+	vector<wstring> options = { L"Testing" , L"Add word" , L"Update word", L"Delete word" };
+	vector<void (*)()> functions = { testingOption, addWordOption, updateWordOption, deleteWordOption };
 	wconsoleMenu languageHelperMenu(options, functions, true);
 	languageHelperMenu.select();
 }
