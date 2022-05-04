@@ -50,13 +50,14 @@ void removeTextInBracket(wstring& string)
 		int leftBracket = -1;
 		for (; i < string.length(); i++)
 		{
-			if (string[i] = L'(' && leftBracket == -1)
+			if (string[i] == L'(' && leftBracket == -1)
 				leftBracket = i;
 
-			if (string[i] = L')' && leftBracket != -1)
+			if (string[i] == L')' && leftBracket > -1)
 			{
 				int lengthToRightBracket = i - leftBracket;
 				string.erase(leftBracket, lengthToRightBracket);
+				i = leftBracket;
 				break;
 			}
 		}
