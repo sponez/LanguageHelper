@@ -41,6 +41,28 @@ wstring wstringStandartForm(wstring s)
 	return s;
 }
 
+void removeTextInBracket(wstring& string)
+{
+	int i = 0;
+
+	while (i < string.length())
+	{
+		int leftBracket = -1;
+		for (; i < string.length(); i++)
+		{
+			if (string[i] = L'(' && leftBracket == -1)
+				leftBracket = i;
+
+			if (string[i] = L')' && leftBracket != -1)
+			{
+				int lengthToRightBracket = i - leftBracket;
+				string.erase(leftBracket, lengthToRightBracket);
+				break;
+			}
+		}
+	}
+}
+
 double findMaxRate(vector<vector<bool>>& matrix, int curri, int currj)
 {
 	int sa = matrix.size(), sb = matrix[0].size();
@@ -123,11 +145,11 @@ wstring randomWordFrom(wstring path)
 	}
 }
 
-void firstLanguageToSecondLanguageTest()
+void testFunction(wstring language)
 {
-	wstring firstLanguageDirrectory = globalPath + L"\\" + wstringStandartForm(firstLanguage) + L"Words";
-	createDirrectory(firstLanguageDirrectory);
-	
+	wstring languageDirrectory = globalPath + L"\\" + wstringStandartForm(language) + L"Words";
+	createDirrectory(languageDirrectory);
+
 	int amountOfRepeats;
 	wcout << L"Enter amount of test repetitions: ";
 	wcin >> amountOfRepeats;
@@ -138,24 +160,25 @@ void firstLanguageToSecondLanguageTest()
 	{
 		_wsystem(L"cls");
 
-		wstring word = randomWordFrom(firstLanguageDirrectory);
+		wstring word = randomWordFrom(languageDirrectory);
 		if (word == L"") return;
 
-		wifstream wordFile(firstLanguageDirrectory + L"\\" + word);
+		wifstream wordFile(languageDirrectory + L"\\" + word);
 		wordFile.imbue(std::locale(wordFile.getloc(), new codecvt_utf8<wchar_t, 0x10ffff, consume_header>()));
 
 		wcout << word << L" is: ";
-		
+
 		wstring answer;
 		getline(wcin, answer);
 		wstringToLower(answer);
 
 		double maxMatchRate = 0.0;
-		vector<wstring> secondLanguageTranslates;
-		for (wstring secondLanguageWord; getline(wordFile, secondLanguageWord);)
+		vector<wstring> anotherLanguageTranslates;
+		for (wstring anotherLanguageWord; getline(wordFile, anotherLanguageWord);)
 		{
-			secondLanguageTranslates.push_back(secondLanguageWord);
-			maxMatchRate = max(maxMatchRate, matchWords(secondLanguageWord, answer));
+			removeTextInBracket(anotherLanguageWord);
+			anotherLanguageTranslates.push_back(anotherLanguageWord);
+			maxMatchRate = max(maxMatchRate, matchWords(anotherLanguageWord, answer));
 		}
 		wordFile.close();
 
@@ -163,15 +186,15 @@ void firstLanguageToSecondLanguageTest()
 		{
 			wcout << L"Absolutely correct!" << endl;
 
-			if (secondLanguageTranslates.size() == 1)
+			if (anotherLanguageTranslates.size() == 1)
 			{
-				wcout << L"Right is " << secondLanguageTranslates[0] << endl;
+				wcout << L"Right is " << anotherLanguageTranslates[0] << endl;
 			}
 			else
 			{
 				wcout << L"Right is one of:" << endl;
-				for (int j = 0; j < secondLanguageTranslates.size(); j++)
-					wcout << secondLanguageTranslates[j] << endl;
+				for (int j = 0; j < anotherLanguageTranslates.size(); j++)
+					wcout << anotherLanguageTranslates[j] << endl;
 			}
 
 			amountOfCorrectAnswers++;
@@ -182,15 +205,15 @@ void firstLanguageToSecondLanguageTest()
 		{
 			wcout << L"Almost correct." << endl;
 
-			if (secondLanguageTranslates.size() == 1)
+			if (anotherLanguageTranslates.size() == 1)
 			{
-				wcout << L"Correct would be " << secondLanguageTranslates[0] << endl;
+				wcout << L"Correct would be " << anotherLanguageTranslates[0] << endl;
 			}
 			else
 			{
 				wcout << L"Correct would be one of:" << endl;
-				for (int j = 0; j < secondLanguageTranslates.size(); j++)
-					wcout << secondLanguageTranslates[j] << endl;
+				for (int j = 0; j < anotherLanguageTranslates.size(); j++)
+					wcout << anotherLanguageTranslates[j] << endl;
 			}
 
 			wcout << L"But it will be scored!" << endl;
@@ -202,16 +225,16 @@ void firstLanguageToSecondLanguageTest()
 		else
 		{
 			wcout << L"Nope." << endl;
-			
-			if (secondLanguageTranslates.size() == 1)
+
+			if (anotherLanguageTranslates.size() == 1)
 			{
-				wcout << L"Correct would be " << secondLanguageTranslates[0] << endl;
+				wcout << L"Correct would be " << anotherLanguageTranslates[0] << endl;
 			}
 			else
 			{
 				wcout << L"Correct would be one of:" << endl;
-				for (int j = 0; j < secondLanguageTranslates.size(); j++)
-					wcout << secondLanguageTranslates[j] << endl;
+				for (int j = 0; j < anotherLanguageTranslates.size(); j++)
+					wcout << anotherLanguageTranslates[j] << endl;
 			}
 
 			wcout << L"It won't be scored!" << endl;
@@ -225,216 +248,114 @@ void firstLanguageToSecondLanguageTest()
 	_wsystem(L"pause");
 }
 
-void secondLanguageToFirstLanguageTest()
+void addWordFunction(wstring language)
 {
-	wstring secondLanguageDirrectory = globalPath + L"\\" + wstringStandartForm(secondLanguage) + L"Words";
-	createDirrectory(secondLanguageDirrectory);
+	wstring languageDirrectory = globalPath + L"\\" + wstringStandartForm(language) + L"Words";
+	createDirrectory(languageDirrectory);
 
-	int amountOfRepeats;
-	wcout << L"Enter amount of test repetitions: ";
-	wcin >> amountOfRepeats;
-	wcin.ignore(LLONG_MAX, '\n');
+	wstring word;
+	wcout << L"Enter the word: ";
+	getline(wcin, word);
+	wstringToLower(word);
 
-	int amountOfCorrectAnswers = 0;
-	for (int i = 0; i < amountOfRepeats; i++)
-	{
-		_wsystem(L"cls");
-
-		wstring word = randomWordFrom(secondLanguageDirrectory);
-		if (word == L"") return;
-
-		wifstream wordFile(secondLanguageDirrectory + L"\\" + word);
-		wordFile.imbue(std::locale(wordFile.getloc(), new codecvt_utf8<wchar_t, 0x10ffff, consume_header>()));
-
-		wcout << word << L" is: ";
-
-		wstring answer;
-		getline(wcin, answer);
-		wstringToLower(answer);
-
-		double maxMatchRate = 0.0;
-		vector<wstring> firstLanguageTranslates;
-		for (wstring firstLanguageWord; getline(wordFile, firstLanguageWord);)
-		{
-			firstLanguageTranslates.push_back(firstLanguageWord);
-			maxMatchRate = max(maxMatchRate, matchWords(firstLanguageWord, answer));
-		}
-		wordFile.close();
-
-		if (maxMatchRate == 1.0)
-		{
-			wcout << L"Absolutely correct!" << endl;
-
-			if (firstLanguageTranslates.size() == 1)
-			{
-				wcout << L"Right is: " << firstLanguageTranslates[0] << endl;
-			}
-			else
-			{
-				wcout << L"Right is one of:" << endl;
-				for (int j = 0; j < firstLanguageTranslates.size(); j++)
-					wcout << firstLanguageTranslates[j] << endl;
-			}
-
-			amountOfCorrectAnswers++;
-
-			_wsystem(L"pause");
-		}
-		else if (maxMatchRate > 0.6)
-		{
-			wcout << L"Almost correct." << endl;
-
-			if (firstLanguageTranslates.size() == 1)
-			{
-				wcout << L"Correct would be " << firstLanguageTranslates[0] << endl;
-			}
-			else
-			{
-				wcout << L"Correct would be one of:" << endl;
-				for (int j = 0; j < firstLanguageTranslates.size(); j++)
-					wcout << firstLanguageTranslates[j] << endl;
-			}
-
-			wcout << L"But it will be scored!" << endl;
-
-			amountOfCorrectAnswers++;
-
-			_wsystem(L"pause");
-		}
-		else
-		{
-			wcout << L"Nope." << endl;
-
-			if (firstLanguageTranslates.size() == 1)
-			{
-				wcout << L"Correct would be " << firstLanguageTranslates[0] << endl;
-			}
-			else
-			{
-				wcout << L"Correct would be one of:" << endl;
-				for (int j = 0; j < firstLanguageTranslates.size(); j++)
-					wcout << firstLanguageTranslates[j] << endl;
-			}
-
-			wcout << L"It won't be scored!" << endl;
-
-			_wsystem(L"pause");
-		}
-	}
-
-	_wsystem(L"cls");
-	wcout << L"You was right in " << amountOfCorrectAnswers * 100 / amountOfRepeats << L"% of cases" << endl;
-	_wsystem(L"pause");
-}
-
-void addFirstLanguageWord()
-{
-	wstring firstLanguageDirrectory = globalPath + L"\\" + firstLanguage + L"Words";
-	createDirrectory(firstLanguageDirrectory);
-
-	wstring firstLanguageWord;
-	wcout << L"Enter a " << firstLanguage << L" word: ";
-	getline(wcin, firstLanguageWord);
-	wstringToLower(firstLanguageWord);
-
-	if (firstLanguageWord.length() == 0)
+	if (word.length() == 0)
 	{
 		wcout << L"Empty word" << endl;
 		_wsystem(L"pause");
 		return;
 	}
-	else
+
+	wofstream wordFile(languageDirrectory + L"\\" + word);
+	wordFile.imbue(locale(wordFile.getloc(), new codecvt_utf8<wchar_t, 0x10ffff, consume_header>()));
+
+	wstring anotherLanguageTranslate = L" ";
+	vector<wstring> anotherLanguageTranslates;
+	while (anotherLanguageTranslate.length() > 0)
 	{
-		wofstream wordFile(firstLanguageDirrectory + L"\\" + firstLanguageWord);
-		wordFile.imbue(locale(wordFile.getloc(), new codecvt_utf8<wchar_t, 0x10ffff, consume_header>()));
+		wcout << L"Enter a translate (if you want to exit just leave it empty): ";
+		getline(wcin, anotherLanguageTranslate);
+		wstringToLower(anotherLanguageTranslate);
 
-		wstring secondLanguageTranslate = L" ";
-		vector<wstring> secondLanguageTranslates;
-		while (secondLanguageTranslate.length() > 0)
+		if (anotherLanguageTranslate.length() > 0)
 		{
-			wcout << L"Enter a " << secondLanguage << L" translate (if you want to exit just press enter): ";
-			getline(wcin, secondLanguageTranslate);
-			wstringToLower(secondLanguageTranslate);
-
-			if (secondLanguageTranslate.length() > 0)
-			{
-				secondLanguageTranslates.push_back(secondLanguageTranslate);
-				wordFile << secondLanguageTranslate << endl;
-			}
+			anotherLanguageTranslates.push_back(anotherLanguageTranslate);
+			wordFile << anotherLanguageTranslate << endl;
 		}
-		wordFile.close();
+	}
+	wordFile.close();
 
-		if (secondLanguageTranslates.size() == 0)
-		{
-			wcout << "No one translates haven't entered." << endl;
-			_wsystem(L"pause");
+	if (anotherLanguageTranslates.size() == 0)
+	{
+		wcout << "No one translates haven't entered." << endl;
+		_wsystem(L"pause");
 
-			wstring command = L"del " + firstLanguageDirrectory + L"\\" + firstLanguageWord;
-			_wsystem(&command[0]);
-			return;
-		}
+		wstring command = L"del " + languageDirrectory + L"\\" + word;
+		_wsystem(&command[0]);
+		return;
 	}
 }
 
-void addSecondLanguagehWord()
+void deleteWordFunction(wstring language)
 {
-	wstring secondLanguageDirrectory = globalPath + L"\\" + secondLanguage + L"Words";
-	createDirrectory(secondLanguageDirrectory);
+	wstring wordDirrectory = globalPath + L"\\" + wstringStandartForm(language) + L"Words";
+	createDirrectory(wordDirrectory);
 
-	wstring secondLanguageWord;
-	wcout << L"Enter a " << secondLanguage << L" word: ";
-	getline(wcin, secondLanguageWord);
-	wstringToLower(secondLanguageWord);
+	wstring word;
+	wcout << L"Enter the word you want to delete: ";
+	getline(wcin, word);
 
-	if (secondLanguageWord.length() == 0)
+	if (word.length() == 0)
 	{
 		wcout << L"Empty word" << endl;
 		_wsystem(L"pause");
 		return;
 	}
+
+	wstringToLower(word);
+	wordDirrectory += L"\\" + word;
+
+	struct _stat buf;
+	if (_wstat(&wordDirrectory[0], &buf) != 0)
+	{
+		wcout << L"This word doesn't exist." << endl;
+		_wsystem(L"pause");
+		return;
+	}
 	else
 	{
-		wofstream wordFile(secondLanguageDirrectory + L"\\" + secondLanguageWord);
-		wordFile.imbue(locale(wordFile.getloc(), new codecvt_utf8<wchar_t, 0x10ffff, consume_header>()));
+		wstring command = L"del " + wordDirrectory;
+		_wsystem(&command[0]);
 
-		wstring firstLanguageTranslate = L" ";
-		vector<wstring> firstLanguageTranslates;
-		while (firstLanguageTranslate.length() > 0)
-		{
-			wcout << L"Enter a " << firstLanguage << L" translate (if you want to exit just press enter): ";
-			getline(wcin, firstLanguageTranslate);
-			wstringToLower(firstLanguageTranslate);
-
-			if (firstLanguageTranslate.length() > 0)
-			{
-				firstLanguageTranslates.push_back(firstLanguageTranslate);
-				wordFile << firstLanguageTranslate << endl;
-			}
-		}
-		wordFile.close();
-
-		if (firstLanguageTranslates.size() == 0)
-		{
-			wcout << "No one translates haven't entered." << endl;
-			_wsystem(L"pause");
-
-			wstring command = L"del " + secondLanguageDirrectory + L"\\" + secondLanguageWord;
-			_wsystem(&command[0]);
-			return;
-		}
+		wcout << "Done!" << endl;
+		_wsystem(L"pause");
+		return;
 	}
 }
 
-void addWordFunction()
-{
+void firstLanguageToSecondLanguageTest() { testFunction(firstLanguage); }
+void secondLanguageToFirstLanguageTest() { testFunction(secondLanguage); }
+void addFirstLanguageWord() { addWordFunction(firstLanguage); }
+void addSecondLanguagehWord() { addWordFunction(secondLanguage); }
+void deleteFirstLanguageWord() { deleteWordFunction(firstLanguage); }
+void deleteSecondLanguagehWord() { deleteWordFunction(secondLanguage); }
 
+void deleteWordOption()
+{
+	vector<wstring> languages = { wstringStandartForm(firstLanguage), wstringStandartForm(secondLanguage) };
+	vector<void (*)()> deleteWordFunctions = { deleteFirstLanguageWord, deleteSecondLanguagehWord };
+	wconsoleMenu languageOfWord(languages, deleteWordFunctions);
+	languageOfWord.select();
+}
+
+void addWordOption()
+{
 	vector<wstring> languages = { wstringStandartForm(firstLanguage), wstringStandartForm(secondLanguage) };
 	vector<void (*)()> addWordFunctions = { addFirstLanguageWord, addSecondLanguagehWord };
 	wconsoleMenu languageOfWord(languages, addWordFunctions);
 	languageOfWord.select();
 }
 
-void testingFunction()
+void testingOption()
 {
 	vector<wstring> testingTypes = { wstringStandartForm(firstLanguage) + L" to " + secondLanguage , wstringStandartForm(secondLanguage) + L" to " + firstLanguage };
 	vector<void (*)()> testingFunctions = { firstLanguageToSecondLanguageTest, secondLanguageToFirstLanguageTest };
@@ -476,8 +397,8 @@ int main(int argc, wchar_t* argv[])
 		languages.close();
 	}
 
-	vector<wstring> options = { L"Testing" , L"Add word" };
-	vector<void (*)()> functions = { testingFunction, addWordFunction };
+	vector<wstring> options = { L"Testing" , L"Add word" , L"Delete word" };
+	vector<void (*)()> functions = { testingOption, addWordOption, deleteWordOption };
 	wconsoleMenu languageHelperMenu(options, functions, true);
 	languageHelperMenu.select();
 }
