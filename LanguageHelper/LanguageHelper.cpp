@@ -256,6 +256,55 @@ void testFunction(wstring language)
 	_wsystem(L"pause");
 }
 
+void displayAllSecondLanguageSavedWords(wstring language)
+{
+	wstring languageDirrectory = globalPath + L"\\" + wstringStandartForm(language) + L"Words";
+	createDirrectory(languageDirrectory);
+
+	for (auto const& fileIterator : filesystem::directory_iterator{ languageDirrectory })
+	{
+		wstring word = fileIterator.path().filename();
+		wcout << word << endl;
+	}
+
+	_wsystem(L"pause");
+}
+
+void displayTranslatesForParticularWord(wstring language)
+{
+	wstring wordDirrectory = globalPath + L"\\" + wstringStandartForm(language) + L"Words";
+	createDirrectory(wordDirrectory);
+
+	wstring word;
+	wcout << L"Enter the word: ";
+	getline(wcin, word);
+
+	if (word.length() == 0)
+	{
+		wcout << L"Empty word" << endl;
+		_wsystem(L"pause");
+		return;
+	}
+
+	wstringToLower(word);
+	wordDirrectory += L"\\" + word;
+
+	struct _stat buf;
+	if (_wstat(&wordDirrectory[0], &buf) != 0)
+	{
+		wcout << L"This word doesn't exist." << endl;
+		_wsystem(L"pause");
+		return;
+	}
+
+	wifstream wordFileR(wordDirrectory);
+	wordFileR.imbue(locale(wordFileR.getloc(), new codecvt_utf8<wchar_t, 0x10ffff, consume_header>()));
+	for (wstring translation; getline(wordFileR, translation);)
+		wcout << translation << endl;
+
+	_wsystem(L"pause");
+}
+
 void addWordFunction(wstring language)
 {
 	wstring languageDirrectory = globalPath + L"\\" + wstringStandartForm(language) + L"Words";
@@ -273,6 +322,15 @@ void addWordFunction(wstring language)
 	}
 
 	wstringToLower(word);
+
+	wstring wordDirrectory = languageDirrectory + L"\\" + word;
+	struct _stat buf;
+	if (_wstat(&wordDirrectory[0], &buf) == 0)
+	{
+		wcout << L"This word already exist." << endl;
+		_wsystem(L"pause");
+		return;
+	}
 
 	wofstream wordFile(languageDirrectory + L"\\" + word);
 	wordFile.imbue(locale(wordFile.getloc(), new codecvt_utf8<wchar_t, 0x10ffff, consume_header>()));
@@ -520,16 +578,43 @@ void testingOption()
 	testingTypeMenu.select();
 }
 
+void displayAllFirstLanguageSavedWords() { displayAllSecondLanguageSavedWords(firstLanguage); }
+void displayTranslatesForParticularFirstLanguageWord() { displayTranslatesForParticularWord(firstLanguage); }
+void viewFirstLanguageWords()
+{
+	vector<wstring> options = { L"Display all saved words", L"Display translates for the particular word" };
+	vector<void (*)()> viewFunctions = { displayAllFirstLanguageSavedWords, displayTranslatesForParticularFirstLanguageWord };
+	wconsoleMenu view(options, viewFunctions);
+	view.select();
+}
+
+void displayAllSecondLanguageSavedWords() { displayAllSecondLanguageSavedWords(secondLanguage); }
+void displayTranslatesForParticularSecondLanguageWord() { displayTranslatesForParticularWord(secondLanguage); }
+void viewSecondLanguagehWords()
+{
+	vector<wstring> options = { L"Display all saved words", L"Display translates for the particular word" };
+	vector<void (*)()> viewFunctions = { displayAllSecondLanguageSavedWords, displayTranslatesForParticularSecondLanguageWord };
+	wconsoleMenu view(options, viewFunctions);
+	view.select();
+}
+
+void viewWordsOption()
+{
+	vector<wstring> languages = { wstringStandartForm(firstLanguage), wstringStandartForm(secondLanguage) };
+	vector<void (*)()> addWordFunctions = { viewFirstLanguageWords, viewSecondLanguagehWords };
+	wconsoleMenu languageOfWord(languages, addWordFunctions);
+	languageOfWord.select();
+}
+
 void addFirstLanguageWord() { addWordFunction(firstLanguage); }
 void addSecondLanguagehWord() { addWordFunction(secondLanguage); }
 void addWordOption()
 {
 	vector<wstring> languages = { wstringStandartForm(firstLanguage), wstringStandartForm(secondLanguage) };
 	vector<void (*)()> addWordFunctions = { addFirstLanguageWord, addSecondLanguagehWord };
-	wconsoleMenu languageOfWord(languages, addWordFunctions);
-	languageOfWord.select();
+	wconsoleMenu add(languages, addWordFunctions);
+	add.select();
 }
-
 
 void addTranslationForFirstLanguageFunction() { addTranslationFunction(firstLanguage); }
 void removeTranslationForFirstLanguageFunction() { removeTranslationFunction(firstLanguage); }
@@ -538,8 +623,8 @@ void updateFirstLanguageWord()
 {
 	vector<wstring> options = { L"Add translation", L"Remove translation", L"Rewrite translations" };
 	vector<void (*)()> updateWordFunctions = { addTranslationForFirstLanguageFunction, removeTranslationForFirstLanguageFunction, rewriteTranslationForFirstLanguageFunction };
-	wconsoleMenu languageOfWord(options, updateWordFunctions);
-	languageOfWord.select();
+	wconsoleMenu update(options, updateWordFunctions);
+	update.select();
 }
 
 void addTranslationForSecondLanguageFunction() { addTranslationFunction(secondLanguage); }
@@ -549,8 +634,8 @@ void updateSecondLanguagehWord()
 {
 	vector<wstring> options = { L"Add translation", L"Remove translation", L"Rewrite translations" };
 	vector<void (*)()> updateWordFunctions = { addTranslationForSecondLanguageFunction, removeTranslationForSecondLanguageFunction, rewriteTranslationForSecondLanguageFunction };
-	wconsoleMenu languageOfWord(options, updateWordFunctions);
-	languageOfWord.select();
+	wconsoleMenu update(options, updateWordFunctions);
+	update.select();
 }
 
 void updateWordOption()
@@ -567,8 +652,8 @@ void deleteWordOption()
 {
 	vector<wstring> languages = { wstringStandartForm(firstLanguage), wstringStandartForm(secondLanguage) };
 	vector<void (*)()> deleteWordFunctions = { deleteFirstLanguageWord, deleteSecondLanguagehWord };
-	wconsoleMenu languageOfWord(languages, deleteWordFunctions);
-	languageOfWord.select();
+	wconsoleMenu deleteM(languages, deleteWordFunctions);
+	deleteM.select();
 }
 
 int main(int argc, wchar_t* argv[])
@@ -605,8 +690,8 @@ int main(int argc, wchar_t* argv[])
 		languages.close();
 	}
 
-	vector<wstring> options = { L"Testing" , L"Add word" , L"Update word", L"Delete word" };
-	vector<void (*)()> functions = { testingOption, addWordOption, updateWordOption, deleteWordOption };
+	vector<wstring> options = { L"Testing" , L"View existing words",  L"Add word" , L"Update word", L"Delete word" };
+	vector<void (*)()> functions = { testingOption, viewWordsOption, addWordOption, updateWordOption, deleteWordOption };
 	wconsoleMenu languageHelperMenu(options, functions, true);
 	languageHelperMenu.select();
 }
