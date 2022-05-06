@@ -1,24 +1,12 @@
-#pragma warning(disable : 4996)
-#include <iostream>
-#include <io.h>
-#include <fcntl.h>
-#include <codecvt>
-#include <fstream>
-#include <filesystem>
-#include <vector>
-#include <algorithm>
-#include <string>
-#include <cmath>
-#include <random>
-#include "ConsoleMenu.h"
+#include "LanguageHelper.h"
 
 using namespace std;
 wstring globalPath;
 wstring firstLanguage;
 wstring secondLanguage;
-mt19937 radnomNumber(time(0));
+mt19937 randomNumber(time(0));
 
-void createDirrectory(wstring path)
+void createDirectory(wstring path)
 {
 	struct _stat buf;
 	if (_wstat(&path[0], &buf) != 0)
@@ -141,15 +129,15 @@ wstring randomWordFrom(wstring path)
 	}
 	else
 	{
-		int randomIndex = radnomNumber() % amountOfWords;
+		int randomIndex = randomNumber() % amountOfWords;
 		return words[randomIndex];
 	}
 }
 
 void testFunction(wstring language)
 {
-	wstring languageDirrectory = globalPath + L"\\" + wstringStandartForm(language) + L"Words";
-	createDirrectory(languageDirrectory);
+	wstring languageDirectory = globalPath + L"\\" + wstringStandartForm(language) + L"Words";
+	createDirrectory(languageDirectory);
 
 	int amountOfRepeats;
 	wcout << L"Enter amount of test repetitions (greater than zero): ";
@@ -168,10 +156,10 @@ void testFunction(wstring language)
 	{
 		_wsystem(L"cls");
 
-		wstring word = randomWordFrom(languageDirrectory);
+		wstring word = randomWordFrom(languageDirectory);
 		if (word == L"") return;
 
-		wifstream wordFile(languageDirrectory + L"\\" + word);
+		wifstream wordFile(languageDirectory + L"\\" + word);
 		wordFile.imbue(std::locale(wordFile.getloc(), new codecvt_utf8<wchar_t, 0x10ffff, consume_header>()));
 
 		wcout << word << L" is: ";
@@ -258,10 +246,10 @@ void testFunction(wstring language)
 
 void displayAllSecondLanguageSavedWords(wstring language)
 {
-	wstring languageDirrectory = globalPath + L"\\" + wstringStandartForm(language) + L"Words";
-	createDirrectory(languageDirrectory);
+	wstring languageDirectory = globalPath + L"\\" + wstringStandartForm(language) + L"Words";
+	createDirrectory(languageDirectory);
 
-	for (auto const& fileIterator : filesystem::directory_iterator{ languageDirrectory })
+	for (auto const& fileIterator : filesystem::directory_iterator{ languageDirectory })
 	{
 		wstring word = fileIterator.path().filename();
 		wcout << word << endl;
@@ -272,8 +260,8 @@ void displayAllSecondLanguageSavedWords(wstring language)
 
 void displayTranslatesForParticularWord(wstring language)
 {
-	wstring wordDirrectory = globalPath + L"\\" + wstringStandartForm(language) + L"Words";
-	createDirrectory(wordDirrectory);
+	wstring wordDirectory = globalPath + L"\\" + wstringStandartForm(language) + L"Words";
+	createDirrectory(wordDirectory);
 
 	wstring word;
 	wcout << L"Enter the word: ";
@@ -287,17 +275,17 @@ void displayTranslatesForParticularWord(wstring language)
 	}
 
 	wstringToLower(word);
-	wordDirrectory += L"\\" + word;
+	wordDirectory += L"\\" + word;
 
 	struct _stat buf;
-	if (_wstat(&wordDirrectory[0], &buf) != 0)
+	if (_wstat(&wordDirectory[0], &buf) != 0)
 	{
 		wcout << L"This word doesn't exist." << endl;
 		_wsystem(L"pause");
 		return;
 	}
 
-	wifstream wordFileR(wordDirrectory);
+	wifstream wordFileR(wordDirectory);
 	wordFileR.imbue(locale(wordFileR.getloc(), new codecvt_utf8<wchar_t, 0x10ffff, consume_header>()));
 	for (wstring translation; getline(wordFileR, translation);)
 		wcout << translation << endl;
@@ -307,8 +295,8 @@ void displayTranslatesForParticularWord(wstring language)
 
 void addWordFunction(wstring language)
 {
-	wstring languageDirrectory = globalPath + L"\\" + wstringStandartForm(language) + L"Words";
-	createDirrectory(languageDirrectory);
+	wstring languageDirectory = globalPath + L"\\" + wstringStandartForm(language) + L"Words";
+	createDirrectory(languageDirectory);
 
 	wstring word;
 	wcout << L"Enter the word: ";
@@ -323,16 +311,16 @@ void addWordFunction(wstring language)
 
 	wstringToLower(word);
 
-	wstring wordDirrectory = languageDirrectory + L"\\" + word;
+	wstring wordDirectory = languageDirectory + L"\\" + word;
 	struct _stat buf;
-	if (_wstat(&wordDirrectory[0], &buf) == 0)
+	if (_wstat(&wordDirectory[0], &buf) == 0)
 	{
 		wcout << L"This word already exist." << endl;
 		_wsystem(L"pause");
 		return;
 	}
 
-	wofstream wordFile(languageDirrectory + L"\\" + word);
+	wofstream wordFile(languageDirectory + L"\\" + word);
 	wordFile.imbue(locale(wordFile.getloc(), new codecvt_utf8<wchar_t, 0x10ffff, consume_header>()));
 
 	wstring translation = L" ";
@@ -356,7 +344,7 @@ void addWordFunction(wstring language)
 		wcout << "No one translations haven't entered." << endl;
 		_wsystem(L"pause");
 
-		wstring command = L"del " + languageDirrectory + L"\\" + word;
+		wstring command = L"del " + languageDirectory + L"\\" + word;
 		_wsystem(&command[0]);
 		return;
 	}
@@ -364,8 +352,8 @@ void addWordFunction(wstring language)
 
 void addTranslationFunction(wstring language)
 {
-	wstring wordDirrectory = globalPath + L"\\" + wstringStandartForm(language) + L"Words";
-	createDirrectory(wordDirrectory);
+	wstring wordDirectory = globalPath + L"\\" + wstringStandartForm(language) + L"Words";
+	createDirrectory(wordDirectory);
 
 	wstring word;
 	wcout << L"Enter the word you want to add the translation for: ";
@@ -379,17 +367,17 @@ void addTranslationFunction(wstring language)
 	}
 
 	wstringToLower(word);
-	wordDirrectory += L"\\" + word;
+	wordDirectory += L"\\" + word;
 
 	struct _stat buf;
-	if (_wstat(&wordDirrectory[0], &buf) != 0)
+	if (_wstat(&wordDirectory[0], &buf) != 0)
 	{
 		wcout << L"This word doesn't exist." << endl;
 		_wsystem(L"pause");
 		return;
 	}
 
-	wofstream wordFile(wordDirrectory, ios::app);
+	wofstream wordFile(wordDirectory, ios::app);
 	wordFile.imbue(locale(wordFile.getloc(), new codecvt_utf8<wchar_t, 0x10ffff, consume_header>()));
 
 	wstring translation = L" ";
@@ -407,8 +395,8 @@ void addTranslationFunction(wstring language)
 
 void removeTranslationFunction(wstring language)
 {
-	wstring wordDirrectory = globalPath + L"\\" + wstringStandartForm(language) + L"Words";
-	createDirrectory(wordDirrectory);
+	wstring wordDirectory = globalPath + L"\\" + wstringStandartForm(language) + L"Words";
+	createDirrectory(wordDirectory);
 
 	wstring word;
 	wcout << L"Enter the word you want to remove the translation for: ";
@@ -422,10 +410,10 @@ void removeTranslationFunction(wstring language)
 	}
 
 	wstringToLower(word);
-	wordDirrectory += L"\\" + word;
+	wordDirectory += L"\\" + word;
 
 	struct _stat buf;
-	if (_wstat(&wordDirrectory[0], &buf) != 0)
+	if (_wstat(&wordDirectory[0], &buf) != 0)
 	{
 		wcout << L"This word doesn't exist." << endl;
 		_wsystem(L"pause");
@@ -433,7 +421,7 @@ void removeTranslationFunction(wstring language)
 	}
 
 	vector<wstring> translations;
-	wifstream wordFileR(wordDirrectory);
+	wifstream wordFileR(wordDirectory);
 	wordFileR.imbue(locale(wordFileR.getloc(), new codecvt_utf8<wchar_t, 0x10ffff, consume_header>()));
 	for(wstring translation; getline(wordFileR, translation);)
 		translations.push_back(translation);
@@ -457,7 +445,7 @@ void removeTranslationFunction(wstring language)
 				wcout << L"You have removed all existed translations. The word will be deleted." << endl;
 				_wsystem(L"pause");
 
-				wstring command = L"del " + wordDirrectory;
+				wstring command = L"del " + wordDirectory;
 				_wsystem(&command[0]);
 				return;
 			}
@@ -468,7 +456,7 @@ void removeTranslationFunction(wstring language)
 		}
 	}
 
-	wofstream wordFileW(wordDirrectory);
+	wofstream wordFileW(wordDirectory);
 	wordFileW.imbue(locale(wordFileW.getloc(), new codecvt_utf8<wchar_t, 0x10ffff, consume_header>()));
 	for (int i = 0; i < translations.size(); i++)
 		wordFileW << translations[i] << endl;
@@ -477,8 +465,8 @@ void removeTranslationFunction(wstring language)
 
 void rewriteTranslationFunction(wstring language)
 {
-	wstring wordDirrectory = globalPath + L"\\" + wstringStandartForm(language) + L"Words";
-	createDirrectory(wordDirrectory);
+	wstring wordDirectory = globalPath + L"\\" + wstringStandartForm(language) + L"Words";
+	createDirrectory(wordDirectory);
 
 	wstring word;
 	wcout << L"Enter the word you want to rewrite translations for: ";
@@ -492,17 +480,17 @@ void rewriteTranslationFunction(wstring language)
 	}
 
 	wstringToLower(word);
-	wordDirrectory += L"\\" + word;
+	wordDirectory += L"\\" + word;
 
 	struct _stat buf;
-	if (_wstat(&wordDirrectory[0], &buf) != 0)
+	if (_wstat(&wordDirectory[0], &buf) != 0)
 	{
 		wcout << L"This word doesn't exist." << endl;
 		_wsystem(L"pause");
 		return;
 	}
 
-	wofstream wordFile(wordDirrectory);
+	wofstream wordFile(wordDirectory);
 	wordFile.imbue(locale(wordFile.getloc(), new codecvt_utf8<wchar_t, 0x10ffff, consume_header>()));
 
 	wstring translation = L" ";
@@ -526,7 +514,7 @@ void rewriteTranslationFunction(wstring language)
 		wcout << "No one translations haven't entered. The word will be removed." << endl;
 		_wsystem(L"pause");
 
-		wstring command = L"del " + wordDirrectory;
+		wstring command = L"del " + wordDirectory;
 		_wsystem(&command[0]);
 		return;
 	}
@@ -534,8 +522,8 @@ void rewriteTranslationFunction(wstring language)
 
 void deleteWordFunction(wstring language)
 {
-	wstring wordDirrectory = globalPath + L"\\" + wstringStandartForm(language) + L"Words";
-	createDirrectory(wordDirrectory);
+	wstring wordDirectory = globalPath + L"\\" + wstringStandartForm(language) + L"Words";
+	createDirrectory(wordDirectory);
 
 	wstring word;
 	wcout << L"Enter the word you want to delete: ";
@@ -550,17 +538,17 @@ void deleteWordFunction(wstring language)
 	}
 
 	wstringToLower(word);
-	wordDirrectory += L"\\" + word;
+	wordDirectory += L"\\" + word;
 
 	struct _stat buf;
-	if (_wstat(&wordDirrectory[0], &buf) != 0)
+	if (_wstat(&wordDirectory[0], &buf) != 0)
 	{
 		wcout << L"This word doesn't exist." << endl;
 		_wsystem(L"pause");
 		return;
 	}
 
-	wstring command = L"del " + wordDirrectory;
+	wstring command = L"del " + wordDirectory;
 	_wsystem(&command[0]);
 
 	wcout << "Done!" << endl;
