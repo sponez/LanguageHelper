@@ -1,8 +1,6 @@
 #pragma once
 #pragma warning(disable : 4996)
 #include <iostream>
-#include <io.h>
-#include <fcntl.h>
 #include <codecvt>
 #include <fstream>
 #include <filesystem>
@@ -22,7 +20,7 @@ bool isFileExist(wstring& path);
 void wstringToLower(wstring&);
 void wstringStandartForm(wstring&);
 void removeTextInBracket(wstring&);
-double findMaxRate(vector<vector<bool>>&, int, int);
+double findMaxRate(vector<vector<bool>>&, size_t, size_t);
 double matchWords(wstring&, wstring&);
 void getWords(wstring&, vector<wstring>&);
 wstring randomWordFrom(wstring&);

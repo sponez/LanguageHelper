@@ -1,5 +1,5 @@
 #include "AdditionalFunctions.h"
-mt19937 radnomNumber(time(0));
+mt19937 radnomNumber((unsigned int)time(0));
 
 void createDirrectory(wstring& path)
 {
@@ -55,13 +55,13 @@ void removeTextInBracket(wstring& string)
 	}
 }
 
-double findMaxRate(vector<vector<bool>>& matrix, int curri, int currj)
+double findMaxRate(vector<vector<bool>>& matrix, size_t curri, size_t currj)
 {
-	int sa = matrix.size(), sb = matrix[0].size();
+	size_t sa = matrix.size(), sb = matrix[0].size();
 
 	double maxRate = 0.0, rate = 0.0;
-	int i = curri;
-	for (int j = currj; j < sb;)
+	size_t i = curri;
+	for (size_t j = currj; j < sb;)
 	{
 		if (i < sa)
 		{
@@ -99,7 +99,7 @@ double matchWords(wstring& mainWord, wstring& secondaryWord)
 		return 0.0;
 
 	vector<vector<bool>> matchMatrix;
-	int amountOfColoumns = max(mainWord.length(), secondaryWord.length());
+	size_t amountOfColoumns = max(mainWord.length(), secondaryWord.length());
 	for (int i = 0; i < mainWord.length(); i++)
 	{
 		vector<bool> iLine;
@@ -128,7 +128,7 @@ wstring randomWordFrom(wstring& path)
 	vector<wstring> words;
 	getWords(path, words);
 
-	unsigned int amountOfWords = words.size();
+	size_t amountOfWords = words.size();
 	if (amountOfWords == 0)
 	{
 		wcout << "Add some words at first" << endl;

@@ -9,11 +9,6 @@ using namespace std;
 
 int main(int argc, wchar_t* argv[])
 {
-	int setmode;
-	setmode = _setmode(_fileno(stdout), _O_U16TEXT);
-	setmode = _setmode(_fileno(stdin), _O_U16TEXT);
-	setmode = _setmode(_fileno(stderr), _O_U16TEXT);
-
 	wchar_t c_username[257];
 	DWORD username_len = 257;
 	GetUserNameW(c_username, &username_len);
