@@ -176,7 +176,7 @@ void updateWordOptionLanguage(wstring optionName)
 	if (optionName == L"Remove translation") updateWordFunctions = { removeTranslationFunction, removeTranslationFunction };
 	if (optionName == L"Rewrite translations") updateWordFunctions = { rewriteTranslationFunction, rewriteTranslationFunction };
 
-	wconsoleMenu languageOfWord(L"Select the language of the word you want to update", languages, updateWordFunctions, L"I don't want update words");
+	wconsoleMenu languageOfWord(L"Select the language of the word you want to update", languages, updateWordFunctions, L"I changed my mind. Back, please");
 	languageOfWord.select();
 }
 
@@ -184,6 +184,6 @@ void updateWordOption(wstring)
 {
 	vector<wstring> options = { L"Add translation", L"Remove translation", L"Rewrite translations" };
 	vector<void (*)(wstring)> updateWordFunctions = { updateWordOptionLanguage, updateWordOptionLanguage, updateWordOptionLanguage };
-	wconsoleMenu update(L"Select the option", options, updateWordFunctions, L"I don't want update words");
+	wconsoleMenu update(L"Select the option", options, updateWordFunctions, L"I changed my mind. Back, please");
 	update.select();
 }

@@ -60,6 +60,6 @@ void addWordOption(wstring)
 {
 	vector<wstring> languages = { firstLanguage, secondLanguage };
 	vector<void (*)(wstring)> addWordFunctions = { addWordFunction, addWordFunction };
-	wconsoleMenu add(L"Select the language of the word you want to add", languages, addWordFunctions, L"I don't want to add words");
+	wconsoleMenu add(L"Select the language of the word you want to add", languages, addWordFunctions, L"I changed my mind. Back, please");
 	add.select();
 }

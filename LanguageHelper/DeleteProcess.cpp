@@ -39,6 +39,6 @@ void deleteWordOption(wstring)
 {
 	vector<wstring> languages = { firstLanguage, secondLanguage };
 	vector<void (*)(wstring)> deleteWordFunctions = { deleteWordFunction, deleteWordFunction };
-	wconsoleMenu deleteM(L"Select the language of the word you want to delete", languages, deleteWordFunctions, L"I don't want delete words");
+	wconsoleMenu deleteM(L"Select the language of the word you want to delete", languages, deleteWordFunctions, L"I changed my mind. Back, please");
 	deleteM.select();
 }

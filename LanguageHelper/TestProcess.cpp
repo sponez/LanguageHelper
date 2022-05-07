@@ -114,6 +114,6 @@ void testingOption(wstring)
 {
 	vector<wstring> testingTypes = { firstLanguage, secondLanguage };
 	vector<void (*)(wstring)> testingFunctions = { testFunction, testFunction };
-	wconsoleMenu testingTypeMenu(L"Select:", testingTypes, testingFunctions, L"Back");
+	wconsoleMenu testingTypeMenu(L"Select the language of words you will translate", testingTypes, testingFunctions, L"I changed my mind. Back, please");
 	testingTypeMenu.select();
 }

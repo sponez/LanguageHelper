@@ -39,6 +39,6 @@ void viewWordsOption(wstring)
 {
 	vector<wstring> languages = { firstLanguage, secondLanguage };
 	vector<void (*)(wstring)> displayFunctions = { displayAllSavedWords, displayAllSavedWords };
-	wconsoleMenu languageOfWord(L"Select", languages, displayFunctions, L"Back");
+	wconsoleMenu languageOfWord(L"Select the language or the saved words you want to see", languages, displayFunctions, L"I changed my mind. Back, please");
 	languageOfWord.select();
 }
