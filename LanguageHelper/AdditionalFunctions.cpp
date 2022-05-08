@@ -1,4 +1,5 @@
 #include "AdditionalFunctions.h"
+#include <array>
 mt19937 radnomNumber((unsigned int)time(0));
 
 void createDirrectory(wstring& path)
@@ -55,63 +56,64 @@ void removeTextInBracket(wstring& string)
 	}
 }
 
-double findMaxRate(vector<vector<bool>>& matrix, size_t curri, size_t currj)
+double DamerauLevenshteinDistance(wstring& mainWord, wstring& secondaryWord)
 {
-	size_t sa = matrix.size(), sb = matrix[0].size();
+	double mwl = mainWord.length();
+	double swl = secondaryWord.length();
+	if (mwl == 0.0 || swl == 0.0)
+		return DBL_MAX;
 
-	double maxRate = 0.0, rate = 0.0;
-	size_t i = curri;
-	for (size_t j = currj; j < sb;)
+	double deleteCost = 1.0;
+	double insertCost = 1.0;
+	double replaceCost = 0.7;
+	double transposeCost = 0.4;
+	double INF = mwl * swl;
+
+	vector<vector<double>> distanceMatrix;
+	distanceMatrix.resize(mwl + 1);
+	for (int i = 0; i <= mwl; i++)
+		distanceMatrix[i].resize(swl + 1);
+
+	distanceMatrix[0][0] = INF;
+	for (int i = 0; i < mwl; i++)
 	{
-		if (i < sa)
+		distanceMatrix[i + 1][1] = i * deleteCost;
+		distanceMatrix[i + 1][0] = INF;
+	}
+	for (int j = 0; j < swl; j++)
+	{
+		distanceMatrix[1][j + 1] = j * insertCost;
+		distanceMatrix[0][j + 1] = INF;
+	}
+
+
+	array<int, 65536> lastPosition;
+	lastPosition.fill(0);
+
+	for (int i = 1; i < mwl; i++)
+	{
+		double last = 0;
+		for (int j = 1; j < swl; j++)
 		{
-			if (matrix[i][j])
+			int _i = lastPosition[secondaryWord[j]];
+			int _j = last;
+			if (mainWord[i] == secondaryWord[j])
 			{
-				rate += 1.0;
-				i++;
-				j++;
+				distanceMatrix[i + 1][j + 1] = distanceMatrix[i][j];
+				last = j;
 			}
 			else
-			{
-				if (i < sa - 1)
-				{
-					double subRate = rate + findMaxRate(matrix, i + 1, j);
-					maxRate = max(maxRate, subRate);
-				}
+				distanceMatrix[i + 1][j + 1] = min(min((distanceMatrix[i][j] + replaceCost),
+														(distanceMatrix[i + 1][j] + insertCost)),
+														(distanceMatrix[i][j] + deleteCost));
 
-				rate -= 0.4;
-				j++;
-			}
+			distanceMatrix[i + 1][j + 1] = min(distanceMatrix[i + 1][j + 1],
+											(distanceMatrix[_i][_j] + (i - _i - 1) * deleteCost + transposeCost + (j - _j - 1) * insertCost));
 		}
-		else
-		{
-			rate -= 0.4;
-			j++;
-		}
+
+		lastPosition[mainWord[i]] = i;
 	}
-
-	return max(maxRate, rate);
-}
-
-double matchWords(wstring& mainWord, wstring& secondaryWord)
-{
-	if (mainWord.length() == 0 || secondaryWord.length() == 0 || abs(static_cast<int>(mainWord.length() - secondaryWord.length())) >= 3)
-		return 0.0;
-
-	vector<vector<bool>> matchMatrix;
-	size_t amountOfColoumns = max(mainWord.length(), secondaryWord.length());
-	for (int i = 0; i < mainWord.length(); i++)
-	{
-		vector<bool> iLine;
-		iLine.resize(amountOfColoumns, false);
-
-		for (int j = 0; j < secondaryWord.length(); j++)
-			iLine[j] = (mainWord[i] == secondaryWord[j]);
-
-		matchMatrix.push_back(iLine);
-	}
-
-	return findMaxRate(matchMatrix, 0, 0) / (double)mainWord.length();
+	return distanceMatrix[mwl][swl];
 }
 
 void getWords(wstring& path, vector<wstring>& emptyList)

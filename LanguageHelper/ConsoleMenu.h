@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include <vector>
+#define NOMINMAX
 #include <windows.h>
 #include <conio.h>
 #include <io.h>

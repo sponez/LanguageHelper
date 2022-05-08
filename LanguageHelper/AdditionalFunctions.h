@@ -20,7 +20,6 @@ bool isFileExist(wstring& path);
 void wstringToLower(wstring&);
 void wstringStandartForm(wstring&);
 void removeTextInBracket(wstring&);
-double findMaxRate(vector<vector<bool>>&, size_t, size_t);
-double matchWords(wstring&, wstring&);
+double DamerauLevenshteinDistance(wstring&, wstring&);
 void getWords(wstring&, vector<wstring>&);
 wstring randomWordFrom(wstring&);

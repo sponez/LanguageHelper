@@ -34,17 +34,17 @@ void testFunction(wstring language)
 		getline(wcin, answer);
 		wstringToLower(answer);
 
-		double maxMatchRate = 0.0;
+		double minDistance = DBL_MAX;
 		vector<wstring> translations;
 		for (wstring anotherLanguageWord; getline(wordFile, anotherLanguageWord);)
 		{
 			removeTextInBracket(anotherLanguageWord);
 			translations.push_back(anotherLanguageWord);
-			maxMatchRate = max(maxMatchRate, matchWords(anotherLanguageWord, answer));
+			minDistance = min(minDistance, DamerauLevenshteinDistance(anotherLanguageWord, answer));
 		}
 		wordFile.close();
 
-		if (maxMatchRate == 1.0)
+		if (minDistance == 0.0)
 		{
 			wcout << L"Absolutely correct!" << endl;
 
@@ -63,7 +63,7 @@ void testFunction(wstring language)
 
 			_wsystem(L"pause");
 		}
-		else if (maxMatchRate > 0.6)
+		else if (minDistance < 5)
 		{
 			wcout << L"Almost correct." << endl;
 
