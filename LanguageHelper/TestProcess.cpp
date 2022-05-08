@@ -63,7 +63,7 @@ void testFunction(wstring language)
 
 			_wsystem(L"pause");
 		}
-		else if (minDistance < 5)
+		else if (minDistance <= 3.0)
 		{
 			wcout << L"Almost correct." << endl;
 
