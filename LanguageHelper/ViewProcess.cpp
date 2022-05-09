@@ -1,21 +1,5 @@
 #include "ViewProcess.h"
 
-void displayAllSavedWords(wstring language)
-{
-	languageDirrectory = globalPath + L"\\" + language + L"Words";
-	createDirrectory(languageDirrectory);
-
-	vector<wstring> words;
-	getWords(languageDirrectory, words);
-
-	vector<void (*)(wstring)> displayFunctions;
-	for (int i = 0; i < words.size(); i++)
-		displayFunctions.push_back(displayTranslationsFor);
-
-	wconsoleMenu display(L"*You can select word and see its translations*", words, displayFunctions, L"*Back*");
-	display.select();
-}
-
 void displayTranslationsFor(wstring word)
 {
 	wstring wordDirrectory = languageDirrectory + L"\\" + word;
@@ -35,10 +19,12 @@ void displayTranslationsFor(wstring word)
 	_wsystem(L"pause");
 }
 
-void viewWordsOption(wstring)
+void viewWordsOption(wstring optionName)
 {
+	updateOption = optionName;
+
 	vector<wstring> languages = { firstLanguage, secondLanguage };
 	vector<void (*)(wstring)> displayFunctions = { displayAllSavedWords, displayAllSavedWords };
-	wconsoleMenu languageOfWord(L"Select the language or the saved words you want to see", languages, displayFunctions, L"I changed my mind. Back, please");
+	wconsoleMenu languageOfWord(L"Select the language of the saved words you want to see", languages, displayFunctions, L"I changed my mind. Back, please");
 	languageOfWord.select();
 }

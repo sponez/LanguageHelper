@@ -1,4 +1,7 @@
 #include "AdditionalFunctions.h"
+#include "ViewProcess.h"
+#include "UpdateProcess.h"
+#include "DeleteProcess.h"
 #include <array>
 mt19937 radnomNumber((unsigned int)time(0));
 
@@ -65,8 +68,8 @@ double DamerauLevenshteinDistance(wstring& mainWord, wstring& secondaryWord)
 
 	double deleteCost = 1.0;
 	double insertCost = 1.0;
-	double replaceCost = 0.7;
-	double transposeCost = 0.4;
+	double replaceCost = 1.0;
+	double transposeCost = 0.5;
 	double INF = mwl * swl;
 
 	vector<vector<double>> distanceMatrix;
@@ -124,6 +127,92 @@ void getWords(wstring& path, vector<wstring>& emptyList)
 		emptyList.push_back(word);
 	}
 }
+
+void getWords(wstring& path, vector<wstring>& emptyList, wstring filterText)
+{
+	for (auto const& fileIterator : filesystem::directory_iterator{ path })
+	{
+		wstring word = fileIterator.path().filename();
+
+		if (filterText.length() <= word.length() && filterText == word.substr(0, filterText.length()))
+			emptyList.push_back(word);
+	}
+}
+
+void displayFilteredWords(wstring& filterText)
+{
+	wstring startText = L"Filter by characters: ";
+
+	vector<wstring> words;
+	getWords(languageDirrectory, words, filterText);
+
+	wcout << startText << filterText << endl;
+	for (int i = 0; i < words.size(); i++)
+		wcout << L"  " << words[i] << endl;
+
+	COORD point;
+	point.X = startText.length() + filterText.length();
+	point.Y = 0;
+	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), point);
+}
+
+void displayAllSavedWords(wstring language)
+{
+	languageDirrectory = globalPath + L"\\" + language + L"Words";
+	createDirrectory(languageDirrectory);
+
+	wstring filterText = L"";
+	displayFilteredWords(filterText);
+	for (;; Sleep(10))
+	{
+		wchar_t wch;
+
+		if (wch = _getwch())
+		{
+			if (wch == L'\r') break;
+
+			if (wch == 8)
+			{
+				if (filterText.length() > 0)
+				{
+					_wsystem(L"cls");
+					filterText.pop_back();
+					displayFilteredWords(filterText);
+				}
+			}
+			else
+			{
+				if ((char)wch == -32)
+				{
+					ignore = _getwch();
+					continue;
+				}
+
+				_wsystem(L"cls");
+				filterText += wch;
+				displayFilteredWords(filterText);
+			}
+		}
+	}
+
+	vector<wstring> words;
+	getWords(languageDirrectory, words, filterText);
+
+	vector<void (*)(wstring)> displayFunctions;
+	for (int i = 0; i < words.size(); i++)
+	{
+		if (updateOption == L"View existing words") displayFunctions.push_back(displayTranslationsFor);
+		if (updateOption == L"Add translation") displayFunctions.push_back(addTranslationFunction);
+		if (updateOption == L"Remove translation") displayFunctions.push_back(removeTranslationFunction);
+		if (updateOption == L"Rewrite translations") displayFunctions.push_back(rewriteTranslationFunction);
+		if (updateOption == L"Delete word") displayFunctions.push_back(deleteWordFunction);
+	}
+
+	filterText = L"Filter by characters: " + filterText;
+	wconsoleMenu display(filterText, words, displayFunctions, L"*Back*");
+	display.select();
+}
+
 
 wstring randomWordFrom(wstring& path)
 {

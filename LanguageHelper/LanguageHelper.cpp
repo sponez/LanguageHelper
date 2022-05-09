@@ -16,6 +16,7 @@ int main(int argc, wchar_t* argv[])
 	createDirrectory(globalPath);
 
 	wifstream savedLanguagesFile(globalPath + L"\\languages.cfg");
+	savedLanguagesFile.imbue(std::locale(savedLanguagesFile.getloc(), new codecvt_utf8<wchar_t, 0x10ffff, consume_header>()));
 	if (savedLanguagesFile.is_open())
 	{
 		savedLanguagesFile >> firstLanguage >> secondLanguage;
@@ -28,6 +29,8 @@ int main(int argc, wchar_t* argv[])
 
 		wcout << L"Please, enter the second using language: ";
 		wcin >> secondLanguage;
+		wcin.ignore(LLONG_MAX, '\n');
+
 
 		wstringStandartForm(firstLanguage);
 		wstringStandartForm(secondLanguage);

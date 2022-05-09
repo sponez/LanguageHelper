@@ -40,7 +40,7 @@ void testFunction(wstring language)
 		{
 			removeTextInBracket(anotherLanguageWord);
 			translations.push_back(anotherLanguageWord);
-			minDistance = min(minDistance, DamerauLevenshteinDistance(anotherLanguageWord, answer));
+			minDistance = min(minDistance, (DamerauLevenshteinDistance(anotherLanguageWord, answer) / (double)anotherLanguageWord.length()));
 		}
 		wordFile.close();
 
@@ -63,7 +63,7 @@ void testFunction(wstring language)
 
 			_wsystem(L"pause");
 		}
-		else if (minDistance <= 3.0)
+		else if (minDistance <= 0.34)
 		{
 			wcout << L"Almost correct." << endl;
 

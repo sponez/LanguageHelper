@@ -173,7 +173,10 @@ void consoleMenu::select()
 		offCursor();
 
 		drawMenu();
+		while (GetAsyncKeyState(VK_UP)) { Sleep(10); }
+		while (GetAsyncKeyState(VK_DOWN)) { Sleep(10); }
 		while (GetAsyncKeyState(VK_RETURN)) { Sleep(10); }
+		while (GetAsyncKeyState(VK_BACK)) { Sleep(10); }
 
 		for (;; Sleep(10))
 		{
@@ -194,22 +197,22 @@ void consoleMenu::select()
 				if (GetAsyncKeyState(VK_MENU) && GetAsyncKeyState(VK_TAB))
 					ShowWindow(consoleWindow, SW_MINIMIZE);
 
-				for (int i = 0; GetAsyncKeyState(VK_UP); Sleep(100 - 2 * i))
+				for (int i = 0; GetAsyncKeyState(VK_UP); Sleep(200 - 4 * i))
 				{
 					if (currentPosition != 0) currentPosition--;
 					else currentPosition = amountOfOptions - 1;
 					redrawMenu(-1);
 
-					if (i < 40) i++;
+					if (i < 45) i++;
 				}
 
-				for (int i = 0; GetAsyncKeyState(VK_DOWN); Sleep(100 - 2 * i))
+				for (int i = 0; GetAsyncKeyState(VK_DOWN); Sleep(200 - 4 * i))
 				{
 					if (currentPosition != amountOfOptions - 1) currentPosition++;
 					else currentPosition = 0;
 					redrawMenu(1);
 
-					if (i < 40) i++;
+					if (i < 45) i++;
 				}
 
 				if (GetAsyncKeyState(VK_RETURN))
@@ -217,6 +220,14 @@ void consoleMenu::select()
 					cin.ignore(LLONG_MAX, '\n');
 					while (_kbhit()) cin.get();
 					break;
+				}
+
+				if (GetAsyncKeyState(VK_BACK))
+				{
+					currentPosition = 0;
+					onCursor();
+					system("cls");
+					return;
 				}
 			}
 		}
@@ -396,7 +407,10 @@ void wconsoleMenu::select()
 		offCursor();
 
 		drawMenu();
-		while (GetAsyncKeyState(VK_RETURN)) { Sleep(10); }
+		while (GetAsyncKeyState(VK_UP)) { Sleep(10); }
+		while (GetAsyncKeyState(VK_DOWN)) { Sleep(10); }
+		while (GetAsyncKeyState(VK_RETURN))	{ Sleep(10); }
+		while (GetAsyncKeyState(VK_BACK)) { Sleep(10); }
 
 		for (;;Sleep(10))
 		{
@@ -417,22 +431,22 @@ void wconsoleMenu::select()
 				if (GetAsyncKeyState(VK_MENU) && GetAsyncKeyState(VK_TAB))
 					ShowWindow(consoleWindow, SW_MINIMIZE);
 
-				for (int i = 0; GetAsyncKeyState(VK_UP); Sleep(100 - 2 * i))
+				for (int i = 0; GetAsyncKeyState(VK_UP); Sleep(200 - 4 * i))
 				{
 					if (currentPosition != 0) currentPosition--;
 					else currentPosition = amountOfOptions - 1;
 					redrawMenu(-1);
 
-					if (i < 40) i++;
+					if (i < 45) i++;
 				}
 
-				for (int i = 0; GetAsyncKeyState(VK_DOWN); Sleep(100 - 2 * i))
+				for (int i = 0; GetAsyncKeyState(VK_DOWN); Sleep(200 - 4 * i))
 				{
 					if (currentPosition != amountOfOptions - 1) currentPosition++;
 					else currentPosition = 0;
 					redrawMenu(1);
 
-					if (i < 40) i++;
+					if (i < 45) i++;
 				}
 
 				if (GetAsyncKeyState(VK_RETURN))
@@ -440,6 +454,14 @@ void wconsoleMenu::select()
 					wcin.ignore(LLONG_MAX, '\n');
 					while (_kbhit()) wcin.get();
 					break;
+				}
+
+				if (GetAsyncKeyState(VK_BACK))
+				{
+					currentPosition = 0;
+					_wsystem(L"cls");
+					onCursor();
+					return;
 				}
 			}
 		}

@@ -1,6 +1,5 @@
 #pragma once
 #include "AdditionalFunctions.h"
-#include "ConsoleMenu.h"
 
 void addTranslationFunction(wstring);
 void removeTranslationFunction(wstring);

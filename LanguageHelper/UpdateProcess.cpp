@@ -1,27 +1,13 @@
 #include "UpdateProcess.h"
 
-void addTranslationFunction(wstring language)
+void addTranslationFunction(wstring word)
 {
-	wstring wordDirrectory = globalPath + L"\\" + language + L"Words";
+	wstring wordDirrectory = languageDirrectory + L"\\" + word;
 	createDirrectory(wordDirrectory);
-
-	wstring word;
-	wcout << L"Enter the word you want to add the translation for: ";
-	getline(wcin, word);
-
-	if (word.length() == 0)
-	{
-		wcout << L"Empty word" << endl;
-		_wsystem(L"pause");
-		return;
-	}
-
-	wstringToLower(word);
-	wordDirrectory += L"\\" + word;
 
 	if (!isFileExist(wordDirrectory))
 	{
-		wcout << L"This word doesn't exist." << endl;
+		wcout << L"This word already doesn't exist." << endl;
 		_wsystem(L"pause");
 		return;
 	}
@@ -42,28 +28,14 @@ void addTranslationFunction(wstring language)
 	wordFile.close();
 }
 
-void removeTranslationFunction(wstring language)
+void removeTranslationFunction(wstring word)
 {
-	wstring wordDirrectory = globalPath + L"\\" + language + L"Words";
+	wstring wordDirrectory = languageDirrectory + L"\\" + word;
 	createDirrectory(wordDirrectory);
-
-	wstring word;
-	wcout << L"Enter the word you want to remove the translation for: ";
-	getline(wcin, word);
-
-	if (word.length() == 0)
-	{
-		wcout << L"Empty word" << endl;
-		_wsystem(L"pause");
-		return;
-	}
-
-	wstringToLower(word);
-	wordDirrectory += L"\\" + word;
 
 	if (!isFileExist(wordDirrectory))
 	{
-		wcout << L"This word doesn't exist." << endl;
+		wcout << L"This word already doesn't exist." << endl;
 		_wsystem(L"pause");
 		return;
 	}
@@ -111,28 +83,14 @@ void removeTranslationFunction(wstring language)
 	wordFileW.close();
 }
 
-void rewriteTranslationFunction(wstring language)
+void rewriteTranslationFunction(wstring word)
 {
-	wstring wordDirrectory = globalPath + L"\\" + language + L"Words";
+	wstring wordDirrectory = languageDirrectory + L"\\" + word;
 	createDirrectory(wordDirrectory);
-
-	wstring word;
-	wcout << L"Enter the word you want to rewrite translations for: ";
-	getline(wcin, word);
-
-	if (word.length() == 0)
-	{
-		wcout << L"Empty word" << endl;
-		_wsystem(L"pause");
-		return;
-	}
-
-	wstringToLower(word);
-	wordDirrectory += L"\\" + word;
 
 	if (!isFileExist(wordDirrectory))
 	{
-		wcout << L"This word doesn't exist." << endl;
+		wcout << L"This word already doesn't exist." << endl;
 		_wsystem(L"pause");
 		return;
 	}
@@ -169,14 +127,11 @@ void rewriteTranslationFunction(wstring language)
 
 void updateWordOptionLanguage(wstring optionName)
 {
+	updateOption = optionName;
+
 	vector<wstring> languages = { firstLanguage, secondLanguage };
-	vector<void (*)(wstring)> updateWordFunctions;
-
-	if (optionName == L"Add translation") updateWordFunctions = { addTranslationFunction, addTranslationFunction };
-	if (optionName == L"Remove translation") updateWordFunctions = { removeTranslationFunction, removeTranslationFunction };
-	if (optionName == L"Rewrite translations") updateWordFunctions = { rewriteTranslationFunction, rewriteTranslationFunction };
-
-	wconsoleMenu languageOfWord(L"Select the language of the word you want to update", languages, updateWordFunctions, L"I changed my mind. Back, please");
+	vector<void (*)(wstring)> displayWordFunctions = { displayAllSavedWords, displayAllSavedWords };
+	wconsoleMenu languageOfWord(L"Select the language of the word you want to update", languages, displayWordFunctions, L"I changed my mind. Back, please");
 	languageOfWord.select();
 }
 
