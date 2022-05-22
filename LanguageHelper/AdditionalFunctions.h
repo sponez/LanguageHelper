@@ -9,7 +9,7 @@
 #include <string>
 #include <cmath>
 #include <random>
-#include "ConsoleMenu.h"
+#include "wconsoleMenu.h"
 using namespace std;
 
 wstring globalPath;
@@ -25,7 +25,6 @@ void wstringStandartForm(wstring&);
 void removeTextInBracket(wstring&);
 double DamerauLevenshteinDistance(wstring&, wstring&);
 void getWords(wstring&, vector<wstring>&);
-void getWords(wstring&, vector<wstring>&, wstring);
-void displayFilteredWords(wstring&);
 void displayAllSavedWords(wstring);
 wstring randomWordFrom(wstring&);
+vector<void (*)(wstring)> functionMultiplier(void (*function)(wstring), short);

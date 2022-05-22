@@ -113,7 +113,7 @@ void testFunction(wstring language)
 void testingOption(wstring)
 {
 	vector<wstring> testingTypes = { firstLanguage, secondLanguage };
-	vector<void (*)(wstring)> testingFunctions = { testFunction, testFunction };
-	wconsoleMenu testingTypeMenu(L"Select the language of words you will translate", testingTypes, testingFunctions, L"I changed my mind. Back, please");
-	testingTypeMenu.select();
+	vector<void (*)(wstring)> functions = functionMultiplier(testFunction, testingTypes.size());
+	wconsoleMenu testingTypeMenu(testingTypes, functions, L"Select the language of words you will translate", L"I changed my mind. Back, please");
+	ignore = testingTypeMenu.singleSelect();
 }

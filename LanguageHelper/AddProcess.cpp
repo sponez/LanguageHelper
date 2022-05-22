@@ -50,8 +50,8 @@ void addWordFunction(wstring language)
 		wcout << "No one translations haven't entered." << endl;
 		_wsystem(L"pause");
 
-		wstring command = L"del " + languageDirrectory + L"\\" + word;
-		_wsystem(&command[0]);
+		wstring wordDirrectory = languageDirrectory + L"\\" + word;
+		_wremove(wordDirrectory.c_str());
 		return;
 	}
 }
@@ -59,7 +59,7 @@ void addWordFunction(wstring language)
 void addWordOption(wstring)
 {
 	vector<wstring> languages = { firstLanguage, secondLanguage };
-	vector<void (*)(wstring)> addWordFunctions = { addWordFunction, addWordFunction };
-	wconsoleMenu add(L"Select the language of the word you want to add", languages, addWordFunctions, L"I changed my mind. Back, please");
-	add.select();
+	vector<void (*)(wstring)> functions = functionMultiplier(addWordFunction, languages.size());
+	wconsoleMenu add(languages, functions, L"Select the language of the word you want to add", L"I changed my mind. Back, please");
+	ignore = add.singleSelect();
 }

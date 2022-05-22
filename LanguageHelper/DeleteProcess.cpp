@@ -11,9 +11,7 @@ void deleteWordFunction(wstring word)
 		return;
 	}
 
-	wstring command = L"del " + wordDirrectory;
-	_wsystem(&command[0]);
-
+	_wremove(wordDirrectory.c_str());
 	wcout << "Done!" << endl;
 	_wsystem(L"pause");
 	return;
@@ -24,7 +22,7 @@ void deleteWordOption(wstring optionName)
 	updateOption = optionName;
 
 	vector<wstring> languages = { firstLanguage, secondLanguage };
-	vector<void (*)(wstring)> deleteWordFunctions = { displayAllSavedWords, displayAllSavedWords };
-	wconsoleMenu deleteM(L"Select the language of the word you want to delete", languages, deleteWordFunctions, L"I changed my mind. Back, please");
-	deleteM.select();
+	vector<void (*)(wstring)> functions = functionMultiplier(displayAllSavedWords, languages.size());
+	wconsoleMenu deleteM(languages, functions, L"Select the language of the word you want to delete", L"I changed my mind. Back, please");
+	ignore = deleteM.singleSelect();
 }

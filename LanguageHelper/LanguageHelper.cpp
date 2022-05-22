@@ -1,5 +1,5 @@
 #include "AdditionalFunctions.h"
-#include "ConsoleMenu.h"
+#include "wconsoleMenu.h"
 #include "TestProcess.h"
 #include "ViewProcess.h"
 #include "AddProcess.h"
@@ -12,7 +12,7 @@ int main(int argc, wchar_t* argv[])
 	wchar_t c_username[257];
 	DWORD username_len = 257;
 	GetUserNameW(c_username, &username_len);
-	globalPath = L"C:\\Users\\" + wstring(c_username) + L"\\AppData\\Local\\LanguageHelper";
+	globalPath = L"C:\\Users\\" + wstring(c_username) + L"\\AppData\\Local\\Language Helper";
 	createDirrectory(globalPath);
 
 	wifstream savedLanguagesFile(globalPath + L"\\languages.cfg");
@@ -29,7 +29,7 @@ int main(int argc, wchar_t* argv[])
 
 		wcout << L"Please, enter the second using language: ";
 		wcin >> secondLanguage;
-		wcin.ignore(LLONG_MAX, '\n');
+		wcin.ignore(LLONG_MAX, L'\n');
 
 
 		wstringStandartForm(firstLanguage);
@@ -42,6 +42,6 @@ int main(int argc, wchar_t* argv[])
 
 	vector<wstring> options = { L"Testing" , L"View existing words",  L"Add word" , L"Update word", L"Delete word" };
 	vector<void (*)(wstring)> functions = { testingOption, viewWordsOption, addWordOption, updateWordOption, deleteWordOption };
-	wconsoleMenu languageHelperMenu(L"What do you want to do", options, functions, L"Close application");
-	languageHelperMenu.select();
+	wconsoleMenu languageHelperMenu(options, functions, L"What do you want to do", L"Close application");
+	languageHelperMenu.cyclicSelect();
 }

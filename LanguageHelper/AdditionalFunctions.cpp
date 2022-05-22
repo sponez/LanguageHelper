@@ -10,7 +10,7 @@ void createDirrectory(wstring& path)
 	struct _stat buf;
 	if (_wstat(&path[0], &buf) != 0)
 	{
-		wstring command = L"md " + path;
+		wstring command = L"md \"" + path + L'\"';
 		_wsystem(&command[0]);
 	}
 }
@@ -56,6 +56,9 @@ void removeTextInBracket(wstring& string)
 				break;
 			}
 		}
+
+		while (string[string.length() - 1] == L' ')
+			string.pop_back();
 	}
 }
 
@@ -128,89 +131,32 @@ void getWords(wstring& path, vector<wstring>& emptyList)
 	}
 }
 
-void getWords(wstring& path, vector<wstring>& emptyList, wstring filterText)
-{
-	for (auto const& fileIterator : filesystem::directory_iterator{ path })
-	{
-		wstring word = fileIterator.path().filename();
-
-		if (filterText.length() <= word.length() && filterText == word.substr(0, filterText.length()))
-			emptyList.push_back(word);
-	}
-}
-
-void displayFilteredWords(wstring& filterText)
-{
-	wstring startText = L"Filter by characters: ";
-
-	vector<wstring> words;
-	getWords(languageDirrectory, words, filterText);
-
-	wcout << startText << filterText << endl;
-	for (int i = 0; i < words.size(); i++)
-		wcout << L"  " << words[i] << endl;
-
-	COORD point;
-	point.X = startText.length() + filterText.length();
-	point.Y = 0;
-	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), point);
-}
-
 void displayAllSavedWords(wstring language)
 {
-	languageDirrectory = globalPath + L"\\" + language + L"Words";
+	languageDirrectory = globalPath + L"\\" + language + L" Words";
 	createDirrectory(languageDirrectory);
 
-	wstring filterText = L"";
-	displayFilteredWords(filterText);
-	for (;; Sleep(10))
-	{
-		wchar_t wch;
-
-		if (wch = _getwch())
-		{
-			if (wch == L'\r') break;
-
-			if (wch == 8)
-			{
-				if (filterText.length() > 0)
-				{
-					_wsystem(L"cls");
-					filterText.pop_back();
-					displayFilteredWords(filterText);
-				}
-			}
-			else
-			{
-				if ((char)wch == -32)
-				{
-					ignore = _getwch();
-					continue;
-				}
-
-				_wsystem(L"cls");
-				filterText += wch;
-				displayFilteredWords(filterText);
-			}
-		}
-	}
-
 	vector<wstring> words;
-	getWords(languageDirrectory, words, filterText);
+	vector<void (*)(wstring)> functions;
+	wconsoleMenu display;
 
-	vector<void (*)(wstring)> displayFunctions;
-	for (int i = 0; i < words.size(); i++)
+	getWords(languageDirrectory, words);
+
+	if (words.size() == 0)
 	{
-		if (updateOption == L"View existing words") displayFunctions.push_back(displayTranslationsFor);
-		if (updateOption == L"Add translation") displayFunctions.push_back(addTranslationFunction);
-		if (updateOption == L"Remove translation") displayFunctions.push_back(removeTranslationFunction);
-		if (updateOption == L"Rewrite translations") displayFunctions.push_back(rewriteTranslationFunction);
-		if (updateOption == L"Delete word") displayFunctions.push_back(deleteWordFunction);
+		wcout << "Words not found!" << endl;
+		_wsystem(L"pause");
+		return;
 	}
 
-	filterText = L"Filter by characters: " + filterText;
-	wconsoleMenu display(filterText, words, displayFunctions, L"*Back*");
-	display.select();
+	if (updateOption == L"View existing words") functions = functionMultiplier(displayTranslationsFor, words.size());
+	if (updateOption == L"Add translation") functions = functionMultiplier(addTranslationFunction, words.size());
+	if (updateOption == L"Remove translation") functions = functionMultiplier(removeTranslationFunction, words.size());
+	if (updateOption == L"Rewrite translations") functions = functionMultiplier(rewriteTranslationFunction, words.size());
+	if (updateOption == L"Delete word") functions = functionMultiplier(deleteWordFunction, words.size());
+
+	display = wconsoleMenu(words, functions, L"Filter: ");
+	display.cyclicSelectWithFilter();
 }
 
 
@@ -222,7 +168,7 @@ wstring randomWordFrom(wstring& path)
 	size_t amountOfWords = words.size();
 	if (amountOfWords == 0)
 	{
-		wcout << "Add some words at first" << endl;
+		wcout << L"Add some words at first" << endl;
 		_wsystem(L"pause");
 		return L"";
 	}
@@ -231,4 +177,14 @@ wstring randomWordFrom(wstring& path)
 		int randomIndex = radnomNumber() % amountOfWords;
 		return words[randomIndex];
 	}
+}
+
+vector<void (*)(wstring)> functionMultiplier(void (*function)(wstring), short amount)
+{
+	vector<void (*)(wstring)> functions;
+
+	for (short i = 0; i < amount; i++)
+		functions.push_back(function);
+
+	return functions;
 }

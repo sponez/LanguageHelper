@@ -65,8 +65,7 @@ void removeTranslationFunction(wstring word)
 				wcout << L"You have removed all existed translations. The word will be deleted." << endl;
 				_wsystem(L"pause");
 
-				wstring command = L"del " + wordDirrectory;
-				_wsystem(&command[0]);
+				_wremove(wordDirrectory.c_str());
 				return;
 			}
 		}
@@ -119,8 +118,7 @@ void rewriteTranslationFunction(wstring word)
 		wcout << "No one translations haven't entered. The word will be removed." << endl;
 		_wsystem(L"pause");
 
-		wstring command = L"del " + wordDirrectory;
-		_wsystem(&command[0]);
+		_wremove(wordDirrectory.c_str());
 		return;
 	}
 }
@@ -130,15 +128,15 @@ void updateWordOptionLanguage(wstring optionName)
 	updateOption = optionName;
 
 	vector<wstring> languages = { firstLanguage, secondLanguage };
-	vector<void (*)(wstring)> displayWordFunctions = { displayAllSavedWords, displayAllSavedWords };
-	wconsoleMenu languageOfWord(L"Select the language of the word you want to update", languages, displayWordFunctions, L"I changed my mind. Back, please");
-	languageOfWord.select();
+	vector<void (*)(wstring)> functions = functionMultiplier(displayAllSavedWords, languages.size());
+	wconsoleMenu languageOfWord(languages, functions, L"Select the language of the word you want to update", L"I changed my mind. Back, please");
+	ignore = languageOfWord.singleSelect();
 }
 
 void updateWordOption(wstring)
 {
 	vector<wstring> options = { L"Add translation", L"Remove translation", L"Rewrite translations" };
-	vector<void (*)(wstring)> updateWordFunctions = { updateWordOptionLanguage, updateWordOptionLanguage, updateWordOptionLanguage };
-	wconsoleMenu update(L"Select the option", options, updateWordFunctions, L"I changed my mind. Back, please");
-	update.select();
+	vector<void (*)(wstring)> functions = functionMultiplier(updateWordOptionLanguage, options.size());
+	wconsoleMenu update(options, functions, L"Select the option", L"I changed my mind. Back, please");
+	ignore = update.singleSelect();
 }
