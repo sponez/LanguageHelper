@@ -147,23 +147,17 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AdditionalFunctions.cpp" />
-    <ClCompile Include="AddProcess.cpp" />
-    <ClCompile Include="DeleteProcess.cpp" />
     <ClCompile Include="LanguageHelper.cpp" />
+    <ClCompile Include="ManageWordsProcess.cpp" />
     <ClCompile Include="TestProcess.cpp" />
-    <ClCompile Include="UpdateProcess.cpp" />
-    <ClCompile Include="ViewProcess.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AdditionalFunctions.h" />
-    <ClInclude Include="AddProcess.h" />
     <ClInclude Include="ConsoleMenu.h" />
     <ClInclude Include="consoleParameters.h" />
-    <ClInclude Include="DeleteProcess.h" />
+    <ClInclude Include="ManageWordsProcess.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="TestProcess.h" />
-    <ClInclude Include="UpdateProcess.h" />
-    <ClInclude Include="ViewProcess.h" />
     <ClInclude Include="wconsoleMenu.h" />
   </ItemGroup>
   <ItemGroup>

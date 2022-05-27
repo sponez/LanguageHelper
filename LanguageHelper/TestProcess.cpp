@@ -1,8 +1,8 @@
 #include "TestProcess.h"
 
-void testFunction(wstring language)
+void testFunction(wstring& language)
 {
-	wstring languageDirrectory = globalPath + L"\\" + language + L"Words";
+	wstring languageDirrectory = globalPath + L"\\" + language + L" Words";
 	createDirrectory(languageDirrectory);
 
 	int amountOfRepeats;
@@ -40,7 +40,7 @@ void testFunction(wstring language)
 		{
 			removeTextInBracket(anotherLanguageWord);
 			translations.push_back(anotherLanguageWord);
-			minDistance = min(minDistance, (DamerauLevenshteinDistance(anotherLanguageWord, answer) / (double)anotherLanguageWord.length()));
+			minDistance = min(minDistance, (wconsoleMenu::DamerauLevenshteinDistance(anotherLanguageWord, answer) / (double)anotherLanguageWord.length()));
 		}
 		wordFile.close();
 
@@ -110,10 +110,10 @@ void testFunction(wstring language)
 	_wsystem(L"pause");
 }
 
-void testingOption(wstring)
+void testingOption(wstring&)
 {
 	vector<wstring> testingTypes = { firstLanguage, secondLanguage };
-	vector<void (*)(wstring)> functions = functionMultiplier(testFunction, testingTypes.size());
+	vector<void (*)(wstring&)> functions = functionMultiplier(testFunction, testingTypes.size());
 	wconsoleMenu testingTypeMenu(testingTypes, functions, L"Select the language of words you will translate", L"I changed my mind. Back, please");
-	ignore = testingTypeMenu.singleSelect();
+	testingTypeMenu.singleSelect();
 }

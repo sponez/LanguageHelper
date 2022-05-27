@@ -1,10 +1,7 @@
 #include "AdditionalFunctions.h"
 #include "wconsoleMenu.h"
 #include "TestProcess.h"
-#include "ViewProcess.h"
-#include "AddProcess.h"
-#include "UpdateProcess.h"
-#include "DeleteProcess.h"
+#include "ManageWordsProcess.h"
 using namespace std;
 
 int main(int argc, wchar_t* argv[])
@@ -40,8 +37,8 @@ int main(int argc, wchar_t* argv[])
 		languages.close();
 	}
 
-	vector<wstring> options = { L"Testing" , L"View existing words",  L"Add word" , L"Update word", L"Delete word" };
-	vector<void (*)(wstring)> functions = { testingOption, viewWordsOption, addWordOption, updateWordOption, deleteWordOption };
+	vector<wstring> options = { L"Testing" , L"Manage words" };
+	vector<void (*)(wstring&)> functions = { testingOption , manageWordsOption };
 	wconsoleMenu languageHelperMenu(options, functions, L"What do you want to do", L"Close application");
 	languageHelperMenu.cyclicSelect();
 }

@@ -2,5 +2,5 @@
 #pragma warning(disable : 4996)
 #include "AdditionalFunctions.h"
 
-void testFunction(wstring);
-void testingOption(wstring);
+void testFunction(wstring&);
+void testingOption(wstring&);

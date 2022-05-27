@@ -15,16 +15,12 @@ using namespace std;
 wstring globalPath;
 wstring firstLanguage;
 wstring secondLanguage;
-wstring languageDirrectory;
-wstring updateOption;
 
 void createDirrectory(wstring&);
 bool isFileExist(wstring& path);
 void wstringToLower(wstring&);
 void wstringStandartForm(wstring&);
 void removeTextInBracket(wstring&);
-double DamerauLevenshteinDistance(wstring&, wstring&);
 void getWords(wstring&, vector<wstring>&);
-void displayAllSavedWords(wstring);
 wstring randomWordFrom(wstring&);
-vector<void (*)(wstring)> functionMultiplier(void (*function)(wstring), short);
+vector<void (*)(wstring&)> functionMultiplier(void (*function)(wstring&), short);

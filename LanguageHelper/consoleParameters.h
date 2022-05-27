@@ -7,11 +7,21 @@ class consoleParameters
 protected:
 	HANDLE consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
 	HWND consoleWindow = GetConsoleWindow();
-	CONSOLE_CURSOR_INFO structCursorInfo{};
-	COORD point{};
+	CONSOLE_CURSOR_INFO structCursorInfo;
+	COORD cursorPosition;
+
+public:
+	consoleParameters();
 	void onCursor();
 	void offCursor();
 };
+
+consoleParameters::consoleParameters()
+{
+	GetConsoleCursorInfo(consoleHandle, &structCursorInfo);
+	cursorPosition.X = 0;
+	cursorPosition.Y = 0;
+}
 
 void consoleParameters::onCursor()
 {
