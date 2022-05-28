@@ -30,6 +30,7 @@ class wconsoleMenu : consoleParameters
 public:
 	//Initializers
 	wconsoleMenu() {}; //Empty console menu
+	wconsoleMenu(vector<wstring>&, wstring, wstring); //Console menu without functions
 	wconsoleMenu(vector<wstring>&, vector<void (*)(wstring&)>&, wstring, wstring); //Console menu with different functions
 
 //Other public functions
@@ -148,15 +149,18 @@ vector<wstring> wconsoleMenu::wstringSplitter(wstring& s, wstring det = L" ")
 
 double wconsoleMenu::DamerauLevenshteinDistance(wstring& mainWord, wstring& secondaryWord)
 {
+	if (mainWord == secondaryWord)
+		return 0.0;
+
 	double mwl = mainWord.length();
 	double swl = secondaryWord.length();
 	if (mwl == 0.0 || swl == 0.0)
 		return DBL_MAX;
 
-	double deleteCost = 0.9;
-	double insertCost = 0.9;
-	double replaceCost = 0.7;
-	double transposeCost = 0.5;
+	double deleteCost = 1.0;
+	double insertCost = 1.0;
+	double replaceCost = 1.0;
+	double transposeCost = 1.0;
 	double INF = mwl * swl;
 
 	vector<vector<double>> distanceMatrix;
@@ -164,7 +168,7 @@ double wconsoleMenu::DamerauLevenshteinDistance(wstring& mainWord, wstring& seco
 	for (int i = 0; i <= mwl; i++)
 		distanceMatrix[i].resize(swl + 1);
 
-	distanceMatrix[0][0] = INF;
+	distanceMatrix[0][0] = 0;
 	for (int i = 0; i < mwl; i++)
 	{
 		distanceMatrix[i + 1][1] = i * deleteCost;
@@ -176,17 +180,16 @@ double wconsoleMenu::DamerauLevenshteinDistance(wstring& mainWord, wstring& seco
 		distanceMatrix[0][j + 1] = INF;
 	}
 
-
 	map<wchar_t, int> lastPosition;
 	for (int i = 0; i < mwl; i++)
 		lastPosition[mainWord[i]] = 0;
 	for (int i = 0; i < swl; i++)
 		lastPosition[secondaryWord[i]] = 0;
 
-	for (int i = 1; i < mwl; i++)
+	for (int i = 0; i < mwl; i++)
 	{
-		double last = 0;
-		for (int j = 1; j < swl; j++)
+		int last = 0;
+		for (int j = 0; j < swl; j++)
 		{
 			int _i = lastPosition[secondaryWord[j]];
 			int _j = last;
@@ -198,17 +201,41 @@ double wconsoleMenu::DamerauLevenshteinDistance(wstring& mainWord, wstring& seco
 			else
 				distanceMatrix[i + 1][j + 1] = min(min((distanceMatrix[i][j] + replaceCost),
 					(distanceMatrix[i + 1][j] + insertCost)),
-					(distanceMatrix[i][j] + deleteCost));
+					(distanceMatrix[i][j + 1] + deleteCost));
 
-			distanceMatrix[i + 1][j + 1] = min(distanceMatrix[i + 1][j + 1],
-				(distanceMatrix[_i][_j] + (i - _i - 1) * deleteCost + transposeCost + (j - _j - 1) * insertCost));
+			if (i - _i - 1 > 0 && j - _j - 1 > 0)
+				distanceMatrix[i + 1][j + 1] = min(distanceMatrix[i + 1][j + 1],
+					(distanceMatrix[_i][_j] + (i - _i - 1) * deleteCost + transposeCost + (j - _j - 1) * insertCost));
 		}
 
 		lastPosition[mainWord[i]] = i;
 	}
+
 	return distanceMatrix[mwl][swl];
 }
 
+wconsoleMenu::wconsoleMenu(vector<wstring>& optionNames, wstring selectText = L"", wstring exitText = L"")
+{
+	ignore = _setmode(_fileno(stdout), _O_U16TEXT);
+	ignore = _setmode(_fileno(stdin), _O_U16TEXT);
+	ignore = _setmode(_fileno(stderr), _O_U16TEXT);
+
+	if (optionNames.size() > SHRT_MAX)
+	{
+		wcout << L"FATAL ERROR. MENU CAN'T BE CREATED. TOO MANY OPTIONS." << endl;
+		_wsystem(L"pause");
+		exit(-1);
+	}
+
+	this->selectText = selectText;
+	isSelectTextEmpty = (selectText == L"");
+
+	this->exitText = exitText;
+	isExitTextEmpty = (exitText == L"");
+
+	for (unsigned short i = 0; i < optionNames.size(); i++)
+		options.push_back(pair<wstring, void (*)(wstring&)>(optionNames[i], [](wstring&) {}));
+}
 
 wconsoleMenu::wconsoleMenu(vector<wstring>& optionNames, vector<void (*)(wstring&)>& optionFunctions, wstring selectText = L"", wstring exitText = L"")
 {
@@ -487,7 +514,7 @@ vector<pair<wstring, void (*)(wstring&)>> wconsoleMenu::optionsFilterer(wstring&
 				for (int _j = 0; (_j + wordsInFilterText[k].length() <= wordsInOptionName[_i].length()); _j++)
 				{
 					wstring subWstring = wordsInOptionName[_i].substr(_j, wordsInFilterText[k].length());
-					if (DamerauLevenshteinDistance(wordsInFilterText[k], subWstring) <= (int)(wordsInFilterText[k].length() / 5))
+					if (DamerauLevenshteinDistance(subWstring, wordsInFilterText[k]) <= 0.2 * wordsInFilterText[k].length())
 					{
 						isSuitable = true;
 						matchAmount++;

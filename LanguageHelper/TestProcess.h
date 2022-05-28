@@ -2,5 +2,7 @@
 #pragma warning(disable : 4996)
 #include "AdditionalFunctions.h"
 
-void testFunction(wstring&);
+void multipleChoiceTest(wstring&);
+void openAnswerTest(wstring&);
+void testingType(wstring&);
 void testingOption(wstring&);

@@ -1,5 +1,4 @@
 #include "AdditionalFunctions.h"
-mt19937 radnomNumber((unsigned int)time(0));
 
 void createDirrectory(wstring& path)
 {
@@ -58,13 +57,27 @@ void removeTextInBracket(wstring& string)
 	}
 }
 
-void getWords(wstring& path, vector<wstring>& emptyList)
+void getWords(wstring path, vector<wstring>& emptyList)
 {
+	emptyList.clear();
 	for (auto const& fileIterator : filesystem::directory_iterator{ path })
 	{
 		wstring word = fileIterator.path().filename();
 		emptyList.push_back(word);
 	}
+}
+
+void getTranslations(wstring path, vector<wstring>& emptyList)
+{
+	emptyList.clear();
+	wifstream wordFile(path);
+	wordFile.imbue(std::locale(wordFile.getloc(), new codecvt_utf8<wchar_t, 0x10ffff, consume_header>()));
+	for (wstring anotherLanguageWord; getline(wordFile, anotherLanguageWord);)
+	{
+		removeTextInBracket(anotherLanguageWord);
+		emptyList.push_back(anotherLanguageWord);
+	}
+	wordFile.close();
 }
 
 wstring randomWordFrom(wstring& path)
@@ -94,4 +107,17 @@ vector<void (*)(wstring&)> functionMultiplier(void (*function)(wstring&), short 
 		functions.push_back(function);
 
 	return functions;
+}
+
+void shuffleVector(vector<wstring>& vec)
+{
+	vector<wstring> auxiliaryVec = vec;
+	vec.clear();
+
+	while (!auxiliaryVec.empty())
+	{
+		int randomIndex = radnomNumber() % auxiliaryVec.size();
+		vec.push_back(auxiliaryVec[randomIndex]);
+		auxiliaryVec.erase(auxiliaryVec.begin() + randomIndex);
+	}
 }
