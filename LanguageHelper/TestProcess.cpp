@@ -62,8 +62,6 @@ void multipleChoiceTest(wstring&)
 
 		for (int j = 0; j < rightTranslations.size(); j++)
 		{
-			wcout << answers[answerNumber] << L'\t' << rightTranslations[j] << endl;
-
 			if (rightTranslations[j] == answers[answerNumber])
 			{
 				amountOfCorrectAnswers++;
