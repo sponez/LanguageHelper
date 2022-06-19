@@ -116,7 +116,7 @@ void openAnswerTest(wstring&)
 		double minDistance = DBL_MAX;
 
 		for (wstring translation : translations)
-			minDistance = min(minDistance, wconsoleMenu::DamerauLevenshteinDistance(translation, answer));
+			minDistance = min(minDistance, (wconsoleMenu::DamerauLevenshteinDistance(translation, answer) / translation.length()));
 
 		if (minDistance == 0.0)
 		{
