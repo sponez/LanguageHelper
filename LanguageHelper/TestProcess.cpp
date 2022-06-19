@@ -114,6 +114,10 @@ void openAnswerTest(wstring&)
 		wstringToLower(answer);
 
 		double minDistance = DBL_MAX;
+
+		for (wstring translation : translations)
+			minDistance = min(minDistance, wconsoleMenu::DamerauLevenshteinDistance(translation, answer));
+
 		if (minDistance == 0.0)
 		{
 			wcout << L"Absolutely correct!" << endl;
