@@ -205,9 +205,19 @@ void displayTranslations(wstring&)
 		}
 
 		functions = functionMultiplier(translatorEditor, translations.size());
-		displayTranslations = wconsoleMenu(translations, functions, L"Filter translations by characters: ");
-		displayTranslations.singleSelectWithFilter(optionNum, filterText, skipFilter);
-		skipFilter = true;
+
+		if (translations.size() > 15)
+		{
+			displayTranslations = wconsoleMenu(translations, functions, L"Filter translations by characters: ");
+			displayTranslations.singleSelectWithFilter(optionNum, filterText, skipFilter);
+			skipFilter = true;
+		}
+		else
+		{
+			displayTranslations = wconsoleMenu(translations, functions, L"Select translation:");
+			displayTranslations.singleSelect(optionNum);
+		}
+
 	} while (optionNum != -1);
 }
 
@@ -266,7 +276,7 @@ void wordEditor(wstring& word)
 	} while (optionNum != -1 && optionNum != 3);
 }
 
-void displayAllSavedWords(wstring& language)
+void displayAllSavedWordsToEdit(wstring& language)
 {
 	short optionNum = 0;
 	wstring filterText = L"";
@@ -276,6 +286,7 @@ void displayAllSavedWords(wstring& language)
 		vector<wstring> words;
 		vector<void (*)(wstring&)> functions;
 		wconsoleMenu displayWords;
+		wstring selectText;
 
 		getWords(currentLanguageDirrectory, words);
 		if (words.size() == 0)
@@ -286,19 +297,30 @@ void displayAllSavedWords(wstring& language)
 		}
 
 		functions = functionMultiplier(wordEditor, words.size());
-		displayWords = wconsoleMenu(words, functions, L"Filter words by characters: ");
-		displayWords.singleSelectWithFilter(optionNum, filterText, skipFilter);
-		skipFilter = true;
+
+		if (words.size() > 15)
+		{
+			selectText = (wstring)L"Filter " + to_wstring(words.size()) + (wstring)L" words by characters: ";
+			displayWords = wconsoleMenu(words, functions, selectText);
+			displayWords.singleSelectWithFilter(optionNum, filterText, skipFilter);
+			skipFilter = true;
+		}
+		else
+		{
+			selectText = L"Select word:";
+			displayWords.singleSelect(optionNum);
+		}
+
 	} while (optionNum != -1);
 }
 
 void addNewOrView(wstring& language)
 {
-	currentLanguageDirrectory = globalPath + L"\\" + language + L" Words";
+	currentLanguageDirrectory = globalPath + L"\\Unlearned\\" + language + L" Words";
 	createDirrectory(currentLanguageDirrectory);
 
 	vector<wstring> options = { L"Edit saved words" , L"Add new word" };
-	vector<void (*)(wstring&)> functions = { displayAllSavedWords , addWordFunction };
+	vector<void (*)(wstring&)> functions = { displayAllSavedWordsToEdit , addWordFunction };
 	wconsoleMenu languageOfWord(options, functions, L"What do you want to do?", L"I changed my mind. Back, please");
 	languageOfWord.cyclicSelect();
 

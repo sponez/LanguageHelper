@@ -2,6 +2,7 @@
 #include "wconsoleMenu.h"
 #include "TestProcess.h"
 #include "ManageWordsProcess.h"
+#include "ViewProcess.h"
 using namespace std;
 
 int main(int argc, wchar_t* argv[])
@@ -21,13 +22,13 @@ int main(int argc, wchar_t* argv[])
 	}
 	else
 	{
-		wcout << L"Global initializing.\nPlease, enter the first using language: ";
+		wcout << L"Global initializing." << endl;
+		wcout << L"Please, enter the first using language: ";
 		wcin >> firstLanguage;
 
 		wcout << L"Please, enter the second using language: ";
 		wcin >> secondLanguage;
 		wcin.ignore(LLONG_MAX, L'\n');
-
 
 		wstringStandartForm(firstLanguage);
 		wstringStandartForm(secondLanguage);
@@ -37,8 +38,8 @@ int main(int argc, wchar_t* argv[])
 		languages.close();
 	}
 
-	vector<wstring> options = { L"Testing" , L"Manage words" };
-	vector<void (*)(wstring&)> functions = { testingOption , manageWordsOption };
+	vector<wstring> options = { L"View saved words" , L"Testing" , L"Manage words"};
+	vector<void (*)(wstring&)> functions = { viewOption, testingOption , manageWordsOption };
 	wconsoleMenu languageHelperMenu(options, functions, L"What do you want to do", L"Close application");
 	languageHelperMenu.cyclicSelect();
 }

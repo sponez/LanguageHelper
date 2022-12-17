@@ -80,22 +80,55 @@ void getTranslations(wstring path, vector<wstring>& emptyList)
 	wordFile.close();
 }
 
-wstring randomWordFrom(wstring& path)
+void vectorDifference(vector<wstring> &first, vector<wstring> &second, vector<wstring> &result)
 {
+	for (int i = 0; i < first.size(); i++)
+	{
+		bool match = false;
+
+		for (int j = 0; j < second.size(); j++)
+		{
+			if (first[i] == second[j])
+			{
+				match = true;
+				break;
+			}
+		}
+
+		if (!match) result.push_back(first[i]);
+	}
+}
+
+wstring randomWordFrom(wstring& path, bool saveWord)
+{
+	static vector<wstring> usedWords;
 	vector<wstring> words;
+	size_t amountOfWords;
 	getWords(path, words);
 
-	size_t amountOfWords = words.size();
-	if (amountOfWords == 0)
+	if (words.size() == 0)
 	{
 		wcout << L"Add some words at first" << endl;
 		_wsystem(L"pause");
 		return L"";
 	}
+	else if (words.size() == 1)
+	{
+		return words[0];
+	}
 	else
 	{
+		vector<wstring> unusedWords;
+		vectorDifference(words, usedWords, unusedWords);
+
+		amountOfWords = unusedWords.size();
 		int randomIndex = radnomNumber() % amountOfWords;
-		return words[randomIndex];
+		wstring selectedWord = unusedWords[randomIndex];
+
+		if (saveWord) usedWords.push_back(selectedWord);
+		if (2 * usedWords.size() >= unusedWords.size()) usedWords.erase(usedWords.begin());
+
+		return selectedWord;
 	}
 }
 
@@ -109,15 +142,15 @@ vector<void (*)(wstring&)> functionMultiplier(void (*function)(wstring&), short 
 	return functions;
 }
 
-void shuffleVector(vector<wstring>& vec)
+void shuffleVector(vector<wstring>& vectorForShuffle)
 {
-	vector<wstring> auxiliaryVec = vec;
-	vec.clear();
+	vector<wstring> auxiliaryVector = vectorForShuffle;
+	vectorForShuffle.clear();
 
-	while (!auxiliaryVec.empty())
+	while (!auxiliaryVector.empty())
 	{
-		int randomIndex = radnomNumber() % auxiliaryVec.size();
-		vec.push_back(auxiliaryVec[randomIndex]);
-		auxiliaryVec.erase(auxiliaryVec.begin() + randomIndex);
+		int randomIndex = radnomNumber() % auxiliaryVector.size();
+		vectorForShuffle.push_back(auxiliaryVector[randomIndex]);
+		auxiliaryVector.erase(auxiliaryVector.begin() + randomIndex);
 	}
 }

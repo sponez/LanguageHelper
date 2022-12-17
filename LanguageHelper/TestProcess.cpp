@@ -1,5 +1,9 @@
 #include "TestProcess.h"
 wstring currentLanguageDirrectory;
+wstring currentLanguageDirrectoryWithLearnedWords;
+map<wstring, int> amountCorrectAnswersInOpenTestMap;
+bool changesInAmountCorrectAnswersInOpenTestMap;
+const short AMOUNT_OF_CORRECT_ANSWERS_TO_DELETE = 4;
 
 void multipleChoiceTest(wstring&)
 {
@@ -49,7 +53,7 @@ void multipleChoiceTest(wstring&)
 		for (int j = 0; j < amountOfAnswers - 1; j++)
 		{
 			vector<wstring> translations;
-			getTranslations(currentLanguageDirrectory + L"\\" + randomWordFrom(currentLanguageDirrectory), translations);
+			getTranslations(currentLanguageDirrectory + L"\\" + randomWordFrom(currentLanguageDirrectory, false), translations);
 
 			wstring answer = translations[radnomNumber() % translations.size()];
 			answers.push_back(answer);
@@ -66,16 +70,20 @@ void multipleChoiceTest(wstring&)
 			{
 				amountOfCorrectAnswers++;
 				wcout << L"You are right!" << endl;
-				_wsystem(L"pause");
 				break;
 			}
 
 			if (j == rightTranslations.size() - 1)
 			{
 				wcout << L"Wrong!" << endl;
-				_wsystem(L"pause");
+				break;
 			}
 		}
+
+		wcout << L"Right translations:" << endl;
+		for (int k = 0; k < rightTranslations.size(); k++)
+			wcout << rightTranslations[k] << endl;
+		_wsystem(L"pause");
 	}
 
 	_wsystem(L"cls");
@@ -134,6 +142,8 @@ void openAnswerTest(wstring&)
 			}
 
 			amountOfCorrectAnswers++;
+			amountCorrectAnswersInOpenTestMap[word]++;
+			changesInAmountCorrectAnswersInOpenTestMap = true;
 
 			_wsystem(L"pause");
 		}
@@ -155,6 +165,8 @@ void openAnswerTest(wstring&)
 			wcout << L"But it will be scored!" << endl;
 
 			amountOfCorrectAnswers++;
+			amountCorrectAnswersInOpenTestMap[word]++;
+			changesInAmountCorrectAnswersInOpenTestMap = true;
 
 			_wsystem(L"pause");
 		}
@@ -175,7 +187,24 @@ void openAnswerTest(wstring&)
 
 			wcout << L"It won't be scored!" << endl;
 
+			if (amountCorrectAnswersInOpenTestMap[word] != 0)
+			{
+				changesInAmountCorrectAnswersInOpenTestMap = true;
+				amountCorrectAnswersInOpenTestMap[word] = 0;
+			}
+
 			_wsystem(L"pause");
+		}
+
+		if (amountCorrectAnswersInOpenTestMap[word] >= AMOUNT_OF_CORRECT_ANSWERS_TO_DELETE)
+		{
+			changesInAmountCorrectAnswersInOpenTestMap = true;
+			amountCorrectAnswersInOpenTestMap.erase(word);
+
+			wstring wordDirrectory = currentLanguageDirrectory + L"\\" + word;
+			wstring command = L"move \"" + wordDirrectory + L"\" \"" + currentLanguageDirrectoryWithLearnedWords + L"\"";
+
+			_wsystem(command.c_str());
 		}
 	}
 
@@ -186,13 +215,42 @@ void openAnswerTest(wstring&)
 
 void testingType(wstring& language)
 {
-	currentLanguageDirrectory = globalPath + L"\\" + language + L" Words";
+	changesInAmountCorrectAnswersInOpenTestMap = false;
+	currentLanguageDirrectory = globalPath + L"\\Unlearned\\" + language + L" Words";
+	currentLanguageDirrectoryWithLearnedWords = globalPath + L"\\Learned\\" + language + L" Words";
+
 	createDirrectory(currentLanguageDirrectory);
+	createDirrectory(currentLanguageDirrectoryWithLearnedWords);
+
+	wstring pathOfFileWithCorrectAnswersCounter = globalPath + L"\\Unlearned\\" + language + L"CorrectAnswersCounter.save";
+
+	wifstream wordFile(pathOfFileWithCorrectAnswersCounter);
+	wordFile.imbue(std::locale(wordFile.getloc(), new codecvt_utf8<wchar_t, 0x10ffff, consume_header>()));
+
+	for (wstring word; getline(wordFile, word, L'>');)
+	{
+		wstring counter;
+		getline(wordFile, counter);
+		amountCorrectAnswersInOpenTestMap.insert(pair<wstring, int>(word, stoi(counter)));
+	}
+
+	wordFile.close();
 
 	vector<wstring> testingTypes = { L"Open answer test" , L"Multiple choice test" };
 	vector<void (*)(wstring&)> functions = { openAnswerTest , multipleChoiceTest };
 	wconsoleMenu testingTypeMenu(testingTypes, functions, L"Select the type of test", L"I changed my mind. Back, please");
 	testingTypeMenu.singleSelect();
+
+	if (changesInAmountCorrectAnswersInOpenTestMap)
+	{
+		wofstream wordFile(pathOfFileWithCorrectAnswersCounter);
+		wordFile.imbue(std::locale(wordFile.getloc(), new codecvt_utf8<wchar_t, 0x10ffff, consume_header>()));
+
+		for (map<wstring, int>::iterator it = amountCorrectAnswersInOpenTestMap.begin(); it != amountCorrectAnswersInOpenTestMap.end(); it++)
+			wordFile << it->first << L'>' << it->second << endl;
+
+		wordFile.close();
+	}
 }
 
 void testingOption(wstring&)

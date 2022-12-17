@@ -5,6 +5,7 @@
 #include <fstream>
 #include <filesystem>
 #include <vector>
+#include <set>
 #include <algorithm>
 #include <string>
 #include <cmath>
@@ -17,13 +18,14 @@ wstring firstLanguage;
 wstring secondLanguage;
 mt19937 radnomNumber((unsigned int)time(0));
 
-void createDirrectory(wstring&);
+void createDirrectory(wstring& path);
 bool isFileExist(wstring& path);
-void wstringToLower(wstring&);
-void wstringStandartForm(wstring&);
-void removeTextInBracket(wstring&);
-void getWords(wstring, vector<wstring>&);
-void getTranslations(wstring, vector<wstring>&);
-wstring randomWordFrom(wstring&);
-vector<void (*)(wstring&)> functionMultiplier(void (*function)(wstring&), short);
-void shuffleVector(vector<wstring>&);
+void wstringToLower(wstring& s);
+void wstringStandartForm(wstring& s);
+void removeTextInBracket(wstring& string);
+void getWords(wstring path, vector<wstring>& emptyList);
+void getTranslations(wstring path, vector<wstring>& emptyList);
+void vectorDifference(vector<wstring>& first, vector<wstring>& second, vector<wstring>& result);
+wstring randomWordFrom(wstring& path, bool saveWord = true);
+vector<void (*)(wstring&)> functionMultiplier(void (*function)(wstring&), short amount);
+void shuffleVector(vector<wstring>& vector);

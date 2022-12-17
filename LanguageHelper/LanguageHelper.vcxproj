@@ -149,6 +149,7 @@
     <ClCompile Include="AdditionalFunctions.cpp" />
     <ClCompile Include="LanguageHelper.cpp" />
     <ClCompile Include="ManageWordsProcess.cpp" />
+    <ClCompile Include="ViewProcess.cpp" />
     <ClCompile Include="TestProcess.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -157,6 +158,7 @@
     <ClInclude Include="ManageWordsProcess.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="TestProcess.h" />
+    <ClInclude Include="ViewProcess.h" />
     <ClInclude Include="wconsoleMenu.h" />
   </ItemGroup>
   <ItemGroup>
