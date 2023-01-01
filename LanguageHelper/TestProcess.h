@@ -1,8 +1,9 @@
 #pragma once
-#pragma warning(disable : 4996)
+#include "ProgramDirectories.h"
 #include "AdditionalFunctions.h"
 
-void multipleChoiceTest(wstring&);
+void workOnMistakes(wstring&);
 void openAnswerTest(wstring&);
-void testingType(wstring&);
-void testingOption(wstring&);
+void testingType(wstring& stage);
+void wordsStageToTest(wstring& language);
+void wordsLanguageToTest(wstring&);

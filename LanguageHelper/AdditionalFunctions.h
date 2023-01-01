@@ -13,19 +13,22 @@
 #include "wconsoleMenu.h"
 using namespace std;
 
-wstring globalPath;
-wstring firstLanguage;
-wstring secondLanguage;
 mt19937 radnomNumber((unsigned int)time(0));
 
-void createDirrectory(wstring& path);
-bool isFileExist(wstring& path);
+bool isPathExist(wstring path);
 void wstringToLower(wstring& s);
-void wstringStandartForm(wstring& s);
 void removeTextInBracket(wstring& string);
 void getWords(wstring path, vector<wstring>& emptyList);
-void getTranslations(wstring path, vector<wstring>& emptyList);
 void vectorDifference(vector<wstring>& first, vector<wstring>& second, vector<wstring>& result);
-wstring randomWordFrom(wstring& path, bool saveWord = true);
+wstring randomWstring(vector<wstring>& wstringArray);
 vector<void (*)(wstring&)> functionMultiplier(void (*function)(wstring&), short amount);
 void shuffleVector(vector<wstring>& vector);
+void getVectorFromWfile(wstring filePath, vector<wstring>& emptyVector, bool removeBracket = false);
+void saveVectorToWfile(wstring filePath, vector<wstring>& sourseVector);
+void getMapFromWfile(wstring filePath, map<wstring, int>& emptyMap);
+void saveMapToWfile(wstring filePath, map<wstring, int>& sourseMap);
+void moveWfile(wstring soursePath, wstring targetPath);
+void printVector(vector<wstring> vector, wstring separator = L"\n", bool newLineAfter = true);
+void printTranslations(vector<wstring> translations);
+bool sucsessFeedback(wstring answer, vector<wstring> translations);
+void addAllPairsCorrespondencesToSetFrom(wstring path, set<pair<wstring, wstring>>& correspondences, bool reverseOrder = false);

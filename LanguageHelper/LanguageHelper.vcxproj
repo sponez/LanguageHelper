@@ -143,18 +143,22 @@
       <AdditionalOptions>/FORCE:MULTIPLE %(AdditionalOptions)</AdditionalOptions>
       <StackReserveSize>78643200</StackReserveSize>
       <StackCommitSize>307200</StackCommitSize>
+      <HeapReserveSize>78643200</HeapReserveSize>
+      <HeapCommitSize>307200</HeapCommitSize>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AdditionalFunctions.cpp" />
     <ClCompile Include="LanguageHelper.cpp" />
     <ClCompile Include="ManageWordsProcess.cpp" />
+    <ClCompile Include="ProgramDirectories.cpp" />
     <ClCompile Include="ViewProcess.cpp" />
     <ClCompile Include="TestProcess.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AdditionalFunctions.h" />
     <ClInclude Include="consoleParameters.h" />
+    <ClInclude Include="ProgramDirectories.h" />
     <ClInclude Include="ManageWordsProcess.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="TestProcess.h" />

@@ -1,16 +1,6 @@
 #include "AdditionalFunctions.h"
 
-void createDirrectory(wstring& path)
-{
-	struct _stat buf;
-	if (_wstat(&path[0], &buf) != 0)
-	{
-		wstring command = L"md \"" + path + L'\"';
-		_wsystem(&command[0]);
-	}
-}
-
-bool isFileExist(wstring& path)
+bool isPathExist(wstring path)
 {
 	struct _stat buf;
 	if (_wstat(&path[0], &buf) == 0)
@@ -25,41 +15,24 @@ void wstringToLower(wstring& s)
 		s[i] = tolower(s[i], locale(""));
 }
 
-void wstringStandartForm(wstring& s)
-{
-	wstringToLower(s);
-	s[0] = toupper(s[0], locale(""));
-}
-
 void removeTextInBracket(wstring& string)
 {
-	int i = 0;
-
-	while (i < string.length())
+	for (int i = 0; i < string.length(); i++)
 	{
-		int leftBracket = -1;
-		for (; i < string.length(); i++)
+		if (string[i] == L'(')
 		{
-			if (string[i] == L'(' && leftBracket == -1)
-				leftBracket = i;
-
-			if (string[i] == L')' && leftBracket > -1)
-			{
-				int lengthToRightBracket = i - leftBracket + 1;
-				string.erase(leftBracket, lengthToRightBracket);
-				i = leftBracket;
-				break;
-			}
+			string.erase(string.begin() + i, string.end());
+			break;
 		}
-
-		while (string[string.length() - 1] == L' ')
-			string.pop_back();
 	}
+
+	while (string.back() == L' ') { string.pop_back(); }
 }
 
 void getWords(wstring path, vector<wstring>& emptyList)
 {
-	emptyList.clear();
+	if (!isPathExist(path)) return;
+
 	for (auto const& fileIterator : filesystem::directory_iterator{ path })
 	{
 		wstring word = fileIterator.path().filename();
@@ -67,20 +40,7 @@ void getWords(wstring path, vector<wstring>& emptyList)
 	}
 }
 
-void getTranslations(wstring path, vector<wstring>& emptyList)
-{
-	emptyList.clear();
-	wifstream wordFile(path);
-	wordFile.imbue(std::locale(wordFile.getloc(), new codecvt_utf8<wchar_t, 0x10ffff, consume_header>()));
-	for (wstring anotherLanguageWord; getline(wordFile, anotherLanguageWord);)
-	{
-		removeTextInBracket(anotherLanguageWord);
-		emptyList.push_back(anotherLanguageWord);
-	}
-	wordFile.close();
-}
-
-void vectorDifference(vector<wstring> &first, vector<wstring> &second, vector<wstring> &result)
+void vectorDifference(vector<wstring>& first, vector<wstring>& second, vector<wstring>& result)
 {
 	for (int i = 0; i < first.size(); i++)
 	{
@@ -99,36 +59,16 @@ void vectorDifference(vector<wstring> &first, vector<wstring> &second, vector<ws
 	}
 }
 
-wstring randomWordFrom(wstring& path, bool saveWord)
+wstring randomWstring(vector<wstring>& wstringArray)
 {
-	static vector<wstring> usedWords;
-	vector<wstring> words;
-	size_t amountOfWords;
-	getWords(path, words);
-
-	if (words.size() == 0)
+	if (wstringArray.empty())
 	{
-		wcout << L"Add some words at first" << endl;
-		_wsystem(L"pause");
-		return L"";
-	}
-	else if (words.size() == 1)
-	{
-		return words[0];
+		return wstring();
 	}
 	else
 	{
-		vector<wstring> unusedWords;
-		vectorDifference(words, usedWords, unusedWords);
-
-		amountOfWords = unusedWords.size();
-		int randomIndex = radnomNumber() % amountOfWords;
-		wstring selectedWord = unusedWords[randomIndex];
-
-		if (saveWord) usedWords.push_back(selectedWord);
-		if (2 * usedWords.size() >= unusedWords.size()) usedWords.erase(usedWords.begin());
-
-		return selectedWord;
+		int randomIndex = radnomNumber() % wstringArray.size();
+		return wstringArray[randomIndex];
 	}
 }
 
@@ -152,5 +92,152 @@ void shuffleVector(vector<wstring>& vectorForShuffle)
 		int randomIndex = radnomNumber() % auxiliaryVector.size();
 		vectorForShuffle.push_back(auxiliaryVector[randomIndex]);
 		auxiliaryVector.erase(auxiliaryVector.begin() + randomIndex);
+	}
+}
+
+void getVectorFromWfile(wstring filePath, vector<wstring>& emptyVector, bool removeBracket)
+{
+	if (!isPathExist(filePath)) return;
+
+	wifstream sourseFile(filePath);
+	sourseFile.imbue(locale(sourseFile.getloc(), new codecvt_utf8<wchar_t, 0x10ffff, consume_header>()));
+
+	for (wstring word; getline(sourseFile, word);)
+	{
+		if (removeBracket) removeTextInBracket(word);
+		emptyVector.push_back(word);
+	}
+
+	sourseFile.close();
+}
+
+void saveVectorToWfile(wstring filePath, vector<wstring>& sourseVector)
+{
+	wofstream targetFile(filePath);
+	targetFile.imbue(locale(targetFile.getloc(), new codecvt_utf8<wchar_t, 0x10ffff, consume_header>()));
+
+	for (wstring word: sourseVector)
+	{
+		targetFile << word << endl;
+	}
+
+	targetFile.close();
+}
+
+void getMapFromWfile(wstring filePath, map<wstring, int>& emptyMap)
+{
+	if (!isPathExist(filePath)) return;
+
+	wifstream sourseFile(filePath);
+	sourseFile.imbue(std::locale(sourseFile.getloc(), new codecvt_utf8<wchar_t, 0x10ffff, consume_header>()));
+
+	for (wstring wstr; getline(sourseFile, wstr, L'>');)
+	{
+		wstring counter;
+		getline(sourseFile, counter);
+		emptyMap.insert(pair<wstring, int>(wstr, stoi(counter)));
+	}
+
+	sourseFile.close();
+}
+
+void saveMapToWfile(wstring filePath, map<wstring, int>& sourseMap)
+{
+	wofstream targetFile(filePath);
+	targetFile.imbue(std::locale(targetFile.getloc(), new codecvt_utf8<wchar_t, 0x10ffff, consume_header>()));
+
+	for (map<wstring, int>::iterator it = sourseMap.begin(); it != sourseMap.end(); it++)
+		targetFile << it->first << L'>' << it->second << endl;
+
+	targetFile.close();
+}
+
+void moveWfile(wstring soursePath, wstring targetPath)
+{
+	if (!isPathExist(soursePath)) return;
+
+	wstring command = L"move \"" + soursePath + L"\" \"" + targetPath + L"\"";
+	_wsystem(command.c_str());
+}
+
+void printVector(vector<wstring> vector, wstring separator, bool newLineAfter)
+{
+	if (vector.empty()) return;
+
+	for (int i = 0; i < vector.size() - 1; i++) { wcout << vector[i] << separator; }
+	wcout << vector.back();
+	if (newLineAfter) wcout << endl;
+}
+
+void printTranslations(vector<wstring> translations)
+{
+	if (translations.size() == 1) { wcout << L"Correct is " << translations[0] << endl; }
+	else
+	{
+		wcout << L"One of the following is correct:" << endl;
+		printVector(translations);
+	}
+}
+
+bool sucsessFeedback(wstring answer, vector<wstring> translations)
+{
+	double minDistance = DBL_MAX;
+
+	for (wstring translation : translations)
+	{
+		double currentDistance = wconsoleMenu::DamerauLevenshteinDistance(translation, answer) / translation.length();
+		minDistance = min(minDistance, currentDistance);
+	}
+
+	if (minDistance == 0.0)
+	{
+		wcout << L"Absolutely correct!" << endl;
+		printTranslations(translations);
+		_wsystem(L"pause");
+
+		return true;
+	}
+	else if (minDistance <= 0.34)
+	{
+		wcout << L"Almost correct." << endl;
+		printTranslations(translations);
+		wcout << L"But it will be scored!" << endl;
+		_wsystem(L"pause");
+
+		return true;
+	}
+	else
+	{
+		wcout << L"Nope." << endl;
+		printTranslations(translations);
+		wcout << L"It won't be scored!" << endl;
+		_wsystem(L"pause");
+
+		return false;
+	}
+}
+
+void addAllPairsCorrespondencesToSetFrom(wstring path, set<pair<wstring, wstring>>& correspondences, bool reverseOrder)
+{
+	if (!isPathExist(path)) return;
+
+	for (auto const& fileIterator : filesystem::directory_iterator{ path })
+	{
+		wstring word = fileIterator.path().filename();
+		wstring wordPath = path + L"\\" + word;
+		vector<wstring> translations;
+
+		getVectorFromWfile(wordPath, translations, true);
+		for (wstring translation : translations)
+		{
+			if (reverseOrder)
+			{
+				correspondences.insert(pair<wstring, wstring>(translation, word));
+			}
+			else
+			{
+				correspondences.insert(pair<wstring, wstring>(word, translation));
+			}
+		}
 	}
 }

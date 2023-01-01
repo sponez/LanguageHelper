@@ -30,6 +30,9 @@
     <ClCompile Include="ViewProcess.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
+    <ClCompile Include="ProgramDirectories.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h">
@@ -51,6 +54,9 @@
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="ViewProcess.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="ProgramDirectories.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>

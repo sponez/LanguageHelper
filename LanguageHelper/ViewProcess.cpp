@@ -1,49 +1,30 @@
-#include "AdditionalFunctions.h"
-#include "wconsoleMenu.h"
 #include "ViewProcess.h"
 
-wstring currentLanguageDirrectory;
+wstring currentLanguage;
+wstring currentStage;
 
 void wordViewer(wstring& word)
 {
-	wstring currentWord = word;
-	wstring wordDirrectory = currentLanguageDirrectory + L"\\" + currentWord;
 	vector <wstring> translations;
 
-	if (!isFileExist(wordDirrectory))
-	{
-		wcout << L"This word already doesn't exist." << endl;
-		_wsystem(L"pause");
-		return;
-	}
-
-	wcout << L"Word: " << currentWord << endl;
+	wcout << L"Word: " << word << endl;
 	wcout << L"Translations: ";
-
-	wifstream wordFileR(wordDirrectory);
-	wordFileR.imbue(locale(wordFileR.getloc(), new codecvt_utf8<wchar_t, 0x10ffff, consume_header>()));
-	for (wstring translation; getline(wordFileR, translation);)
-		translations.push_back(translation);
-	wordFileR.close();
-
-	for (int i = 0; i < translations.size() - 1; i++)
-		wcout << translations[i] << L", ";
-	wcout << translations.back() << endl;
+	getVectorFromWfile(ProgramDirectories::getPathToFile(word, currentLanguage, currentStage), translations);
+	printVector(translations, L", ");
 
 	_wsystem(L"pause");
 }
 
-void displayAllSavedWordsToView(wstring& language)
+void displaySavedWords(wstring& stage)
 {
-	currentLanguageDirrectory = globalPath + L"\\Unlearned\\" + language + L" Words";
-	createDirrectory(currentLanguageDirrectory);
+	currentStage = stage;
 
 	vector<void (*)(wstring&)> functions;
 	wconsoleMenu displayWords;
 	wstring selectText;
 
 	vector<wstring> words;
-	getWords(currentLanguageDirrectory, words);
+	getWords(ProgramDirectories::getPathToDirectory(currentLanguage, currentStage), words);
 	if (words.size() == 0)
 	{
 		wcout << "Words not found!" << endl;
@@ -73,12 +54,26 @@ void displayAllSavedWordsToView(wstring& language)
 		displayWords = wconsoleMenu(words, functions, selectText);
 		displayWords.cyclicSelect();
 	}
+
+	currentStage.clear();
 }
 
-void viewOption(wstring&)
+void wordsStageToView(wstring& language)
 {
-	vector<wstring> languageOfWords = { firstLanguage, secondLanguage };
-	vector<void (*)(wstring&)> functions = functionMultiplier(displayAllSavedWordsToView, languageOfWords.size());
-	wconsoleMenu testingTypeMenu(languageOfWords, functions, L"Select the language of words you want to see", L"I changed my mind. Back, please");
+	currentLanguage = language;
+
+	vector<wstring> stageOfWords = { ProgramDirectories::stages.unlearned , ProgramDirectories::stages.learned };
+	vector<void (*)(wstring&)> functions = functionMultiplier(displaySavedWords, stageOfWords.size());
+	wconsoleMenu testingTypeMenu(stageOfWords, functions, L"Select the language of words you want to see", L"I changed my mind. Back, please");
+	testingTypeMenu.singleSelect();
+
+	currentLanguage.clear();
+}
+
+void wordsLanguageToView(wstring&)
+{
+	vector<wstring> languages = { ProgramDirectories::languages.native , ProgramDirectories::languages.target };
+	vector<void (*)(wstring&)> functions = functionMultiplier(wordsStageToView, languages.size());
+	wconsoleMenu testingTypeMenu(languages, functions, L"Select the language of words you want to see", L"I changed my mind. Back, please");
 	testingTypeMenu.singleSelect();
 }

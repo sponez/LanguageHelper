@@ -1,15 +1,95 @@
 #include "ManageWordsProcess.h"
-#include <sstream>
-wstring currentLanguageDirrectory;
+
+wstring currentLanguage;
+wstring currentStage;
 wstring* currentWordPointer;
 wstring* currentTranslationPointer;
+
+void convertWordsFromAnotherLanguage(wstring&)
+{
+	set<pair<wstring, wstring>> correspondences;
+	addAllPairsCorrespondencesToSetFrom(ProgramDirectories::getPathToDirectory(currentLanguage, ProgramDirectories::stages.unlearned), correspondences);
+	addAllPairsCorrespondencesToSetFrom(ProgramDirectories::getPathToDirectory(ProgramDirectories::reverseLanguage(currentLanguage), ProgramDirectories::stages.unlearned), correspondences, true);
+	addAllPairsCorrespondencesToSetFrom(ProgramDirectories::getPathToDirectory(ProgramDirectories::reverseLanguage(currentLanguage), ProgramDirectories::stages.learned), correspondences, true);
+
+	if (!correspondences.empty())
+	{
+		wstring currentWord = correspondences.begin()->first;
+		vector<wstring> translations;
+
+		for (set<pair<wstring, wstring>>::iterator correspondenceIt = correspondences.begin(); correspondenceIt != correspondences.end(); correspondenceIt++)
+		{
+			if (correspondenceIt->first != currentWord)
+			{
+				saveVectorToWfile(ProgramDirectories::getPathToFile(currentWord, currentLanguage, ProgramDirectories::stages.unlearned), translations);
+				currentWord = correspondenceIt->first;
+				translations.clear();
+			}
+
+			translations.push_back(correspondenceIt->second);
+		}
+		saveVectorToWfile(ProgramDirectories::getPathToFile(currentWord, currentLanguage, ProgramDirectories::stages.unlearned), translations);
+	}
+}
+
+void getRandomWordsFromLearned(wstring&)
+{
+	int amount;
+	vector<wstring> allLearnedWords;
+
+	getWords(ProgramDirectories::getPathToDirectory(currentLanguage, ProgramDirectories::stages.learned), allLearnedWords);
+	wcout << L"Enter amount of words from 1 to " << allLearnedWords.size() << L": ";
+	if (wcin >> amount)
+	{
+		wcin.ignore(LLONG_MAX, '\n');
+
+		if (amount <= 0)
+		{
+			_wsystem(L"cls");
+			wcout << L"Invalid operation." << endl;
+			_wsystem(L"pause");
+			return;
+		}
+
+		if (amount > allLearnedWords.size())
+		{
+			_wsystem(L"cls");
+			wcout << L"Too much. Will moved all words." << endl;
+			_wsystem(L"pause");
+
+			amount = allLearnedWords.size();
+		}
+
+		for (int i = 0; i < amount; i++)
+		{
+			wstring wordToMove = randomWstring(allLearnedWords);
+			moveWfile(ProgramDirectories::getPathToFile(wordToMove, currentLanguage, ProgramDirectories::stages.learned),
+				ProgramDirectories::getPathToDirectory(currentLanguage, ProgramDirectories::stages.unlearned));
+
+			ignore = remove(allLearnedWords.begin(), allLearnedWords.end(), wordToMove);
+		}
+
+		_wsystem(L"cls");
+		wcout << L"Done!" << endl;
+		_wsystem(L"pause");
+	}
+	else
+	{
+		wcin.ignore(LLONG_MAX, '\n');
+
+		_wsystem(L"cls");
+		wcout << L"Something went wrong." << endl;
+		_wsystem(L"pause");
+		return;
+	}
+}
 
 void addWordFunction(wstring&)
 {
 	wstring word;
+	wstring pathToWord;
 	wcout << L"Enter the word: ";
 	getline(wcin, word);
-
 	if (word.length() == 0)
 	{
 		wcout << L"Empty word" << endl;
@@ -18,110 +98,82 @@ void addWordFunction(wstring&)
 	}
 	wstringToLower(word);
 
-	wstring wordDirrectory = currentLanguageDirrectory + L"\\" + word;
-	if (isFileExist(wordDirrectory))
+	pathToWord = ProgramDirectories::getPathToFile(word, currentLanguage, currentStage);
+	if (isPathExist(pathToWord))
 	{
 		wcout << L"This word already exist." << endl;
 		_wsystem(L"pause");
 		return;
 	}
 
-	wofstream wordFile(currentLanguageDirrectory + L"\\" + word);
-	wordFile.imbue(locale(wordFile.getloc(), new codecvt_utf8<wchar_t, 0x10ffff, consume_header>()));
-
-	wstring translation = L" ";
 	vector<wstring> translations;
-	while (translation.length() > 0)
+	while (true)
 	{
-		wcout << L"Enter a translation (if you want to exit just leave it empty): ";
+		wstring translation;
+
+		wcout << L"Leave empty to exit." << endl;
+		wcout << L"Enter a translation: ";
+
 		getline(wcin, translation);
+		if (translation.empty()) { break; }
 		wstringToLower(translation);
 
-		if (translation.length() > 0)
-		{
-			translations.push_back(translation);
-			wordFile << translation << endl;
-		}
+		translations.push_back(translation);
 	}
-	wordFile.close();
 
-	if (translations.size() == 0)
-	{
-		wcout << "No one translations haven't entered." << endl;
-		_wsystem(L"pause");
-
-		wstring wordDirrectory = currentLanguageDirrectory + L"\\" + word;
-		_wremove(wordDirrectory.c_str());
-		return;
-	}
+	if (translations.size() != 0) { saveVectorToWfile(pathToWord, translations); }
 }
 
 void deleteWordFunction(wstring&)
 {
-	wstring currentWord = *currentWordPointer;
-	wstring wordDirrectory = currentLanguageDirrectory + L"\\" + currentWord;
-
-	if (!isFileExist(wordDirrectory))
-	{
-		wcout << L"This word already doesn't exist." << endl;
-		_wsystem(L"pause");
-		return;
-	}
-
-	_wremove(wordDirrectory.c_str());
+	_wremove(ProgramDirectories::getPathToFile(*currentWordPointer, currentLanguage, currentStage).c_str());
 	wcout << "Done!" << endl;
 	_wsystem(L"pause");
-	return;
+}
+
+void moveToUnlearned(wstring&)
+{
+	moveWfile(ProgramDirectories::getPathToFile(*currentWordPointer, currentLanguage, currentStage),
+		ProgramDirectories::getPathToDirectory(currentLanguage, ProgramDirectories::stages.unlearned));
+	_wsystem(L"cls");
+	wcout << "Done!" << endl;
+	_wsystem(L"pause");
 }
 
 void addTranslationFunction(wstring&)
 {
-	wstring currentWord = *currentWordPointer;
-	wstring wordDirrectory = currentLanguageDirrectory + L"\\" + currentWord;
-	createDirrectory(wordDirrectory);
-
-	if (!isFileExist(wordDirrectory))
-	{
-		wcout << L"This word already doesn't exist." << endl;
-		_wsystem(L"pause");
-		return;
-	}
-
-	wofstream wordFile(wordDirrectory, ios::app);
+	wofstream wordFile(ProgramDirectories::getPathToFile(*currentWordPointer, currentLanguage, currentStage), ios::app);
 	wordFile.imbue(locale(wordFile.getloc(), new codecvt_utf8<wchar_t, 0x10ffff, consume_header>()));
 
-	wstring translation = L" ";
-	while (translation.length() > 0)
+	wcout << L"Leave empty to exit." << endl;
+	while (true)
 	{
-		wcout << L"Enter a translation (if you want to exit just leave it empty): ";
+		wstring translation;
+		wcout << L"Enter a translation: ";
+
 		getline(wcin, translation);
+		if (translation.empty()) { break; }
 		wstringToLower(translation);
 
-		if (translation.length() > 0)
-			wordFile << translation << endl;
+		wordFile << translation << endl;
 	}
+
 	wordFile.close();
 }
 
-void translationFunction(wstring& optionName)
+void translationEditorFunction(wstring& optionName)
 {
-	wstring currentWord = *currentWordPointer;
-	wstring wordDirrectory = currentLanguageDirrectory + L"\\" + currentWord;
-	createDirrectory(wordDirrectory);
+	wstring pathToWord = ProgramDirectories::getPathToFile(*currentWordPointer, currentLanguage, currentStage);
+	vector<wstring> translations;
 
-	if (!isFileExist(wordDirrectory))
+	getVectorFromWfile(pathToWord, translations);
+	if (translations.size() == 0)
 	{
-		wcout << L"This word already doesn't exist." << endl;
+		wcout << "Translations not found! The word will be deleted." << endl;
 		_wsystem(L"pause");
+		_wremove(ProgramDirectories::getPathToFile(*currentWordPointer, currentLanguage, currentStage).c_str());
 		return;
 	}
-
-	vector<wstring> translations;
-	wifstream wordFileR(wordDirrectory);
-	wordFileR.imbue(locale(wordFileR.getloc(), new codecvt_utf8<wchar_t, 0x10ffff, consume_header>()));
-	for (wstring translation; getline(wordFileR, translation);)
-		translations.push_back(translation);
-	wordFileR.close();
 
 	vector<wstring>::iterator positionOfTranslation = find(translations.begin(), translations.end(), *currentTranslationPointer);
 	if (positionOfTranslation != translations.end())
@@ -140,8 +192,7 @@ void translationFunction(wstring& optionName)
 			{
 				wcout << L"You have removed all existed translations. The word will be deleted." << endl;
 				_wsystem(L"pause");
-
-				_wremove(wordDirrectory.c_str());
+				_wremove(pathToWord.c_str());
 				return;
 			}
 		}
@@ -152,11 +203,7 @@ void translationFunction(wstring& optionName)
 		return;
 	}
 
-	wofstream wordFileW(wordDirrectory);
-	wordFileW.imbue(locale(wordFileW.getloc(), new codecvt_utf8<wchar_t, 0x10ffff, consume_header>()));
-	for (int i = 0; i < translations.size(); i++)
-		wordFileW << translations[i] << endl;
-	wordFileW.close();
+	saveVectorToWfile(pathToWord, translations);
 }
 
 void translatorEditor(wstring& translation)
@@ -164,24 +211,18 @@ void translatorEditor(wstring& translation)
 	currentTranslationPointer = &translation;
 
 	vector<wstring> editorOptions = { L"Edit" , L"Delete" };
-	vector<void (*)(wstring&)> functions = functionMultiplier(translationFunction, editorOptions.size());
+	vector<void (*)(wstring&)> functions = functionMultiplier(translationEditorFunction, editorOptions.size());
 	wconsoleMenu languageOfWord(editorOptions, functions, L"What do you want to do?", L"I changed my mind. Back, please");
 	languageOfWord.singleSelect();
+
+	currentTranslationPointer = nullptr;
 }
 
 void displayTranslations(wstring&)
 {
-	wstring currentWord = *currentWordPointer;
-	wstring wordDirrectory = currentLanguageDirrectory + L"\\" + currentWord;
-	if (!isFileExist(wordDirrectory))
-	{
-		wcout << L"This word already doesn't exist." << endl;
-		_wsystem(L"pause");
-		return;
-	}
-
+	wstring pathToWord = ProgramDirectories::getPathToFile(*currentWordPointer, currentLanguage, currentStage);
 	short optionNum = 0;
-	wstring filterText = L"";
+	wstring filterText = wstring();
 	bool skipFilter = false;
 	do
 	{
@@ -189,18 +230,12 @@ void displayTranslations(wstring&)
 		vector<void (*)(wstring&)> functions;
 		wconsoleMenu displayTranslations;
 
-		wifstream wordFileR(wordDirrectory);
-		wordFileR.imbue(locale(wordFileR.getloc(), new codecvt_utf8<wchar_t, 0x10ffff, consume_header>()));
-		for (wstring translation; getline(wordFileR, translation);)
-			translations.push_back(translation);
-		wordFileR.close();
-
+		getVectorFromWfile(pathToWord, translations);
 		if (translations.size() == 0)
 		{
 			wcout << "Translations not found! The word will be deleted." << endl;
 			_wsystem(L"pause");
-
-			_wremove(wordDirrectory.c_str());
+			_wremove(pathToWord.c_str());
 			return;
 		}
 
@@ -223,60 +258,59 @@ void displayTranslations(wstring&)
 
 void ranameWordFunction(wstring&)
 {
-	wstring currentWord = *currentWordPointer;
-	wstring wordDirrectory = currentLanguageDirrectory + L"\\" + currentWord;
-	if (!isFileExist(wordDirrectory))
-	{
-		wcout << L"This word already doesn't exist." << endl;
-		_wsystem(L"pause");
-		return;
-	}
-
-	wifstream wordFileR(wordDirrectory);
-	wordFileR.imbue(locale(wordFileR.getloc(), new codecvt_utf8<wchar_t, 0x10ffff, consume_header>()));
-
 	vector<wstring> translations;
-	for (wstring translation; getline(wordFileR, translation);)
-		translations.push_back(translation);
-	wordFileR.close();
 
+	getVectorFromWfile(ProgramDirectories::getPathToFile(*currentWordPointer, currentLanguage, currentStage), translations);
 	if (translations.size() == 0)
 	{
 		wcout << "Translations not found! The word is broken and will be deleted." << endl;
 		_wsystem(L"pause");
-		
-		_wremove(wordDirrectory.c_str());
+		_wremove(ProgramDirectories::getPathToFile(*currentWordPointer, currentLanguage, currentStage).c_str());
 		return;
 	}
 
+	_wremove(ProgramDirectories::getPathToFile(*currentWordPointer, currentLanguage, currentStage).c_str());
 	wconsoleMenu::consoleWstringEditor(*currentWordPointer);
-	currentWord = *currentWordPointer;
-	_wremove(wordDirrectory.c_str());
-	wordDirrectory = currentLanguageDirrectory + L"\\" + currentWord;
-
-	wofstream wordFileW(wordDirrectory);
-	wordFileW.imbue(locale(wordFileW.getloc(), new codecvt_utf8<wchar_t, 0x10ffff, consume_header>()));
-	for (int i = 0; i < translations.size(); i++)
-		wordFileW << translations[i] << endl;
-	wordFileW.close();
+	saveVectorToWfile(ProgramDirectories::getPathToFile(*currentWordPointer, currentLanguage, currentStage), translations);
 }
 
 void wordEditor(wstring& word)
 {
 	currentWordPointer = &word;
 
-	vector<wstring> editorOptions = { L"Rename" , L"View translations" , L"Add translations" , L"Delete"};
-	vector<void (*)(wstring&)> functions = { ranameWordFunction , displayTranslations , addTranslationFunction , deleteWordFunction };
-	wconsoleMenu editor(editorOptions, functions, L"What do you want to do?", L"I changed my mind. Back, please");
+	vector<wstring> editorOptions;
+	vector<void (*)(wstring&)> functions;
+	wconsoleMenu editor;
 
-	short optionNum = 0;
-	do
+	if (currentStage == ProgramDirectories::stages.unlearned)
 	{
-		editor.singleSelect(optionNum);
-	} while (optionNum != -1 && optionNum != 3);
+		editorOptions = { L"Rename" , L"View translations" , L"Add translations" , L"Delete" };
+		functions = { ranameWordFunction , displayTranslations , addTranslationFunction , deleteWordFunction };
+		editor = wconsoleMenu(editorOptions, functions, L"What do you want to do?", L"I changed my mind. Back, please");
+
+		short optionNum = 0;
+		do
+		{
+			editor.singleSelect(optionNum);
+		} while (optionNum != -1 && optionNum != 3);
+	}
+	else
+	{
+		editorOptions = { L"View translations" , L"Add translations" , L"Move to unlearned", L"Delete" };
+		functions = { displayTranslations , addTranslationFunction , moveToUnlearned , deleteWordFunction };
+		editor = wconsoleMenu(editorOptions, functions, L"What do you want to do?", L"I changed my mind. Back, please");
+
+		short optionNum = 0;
+		do
+		{
+			editor.singleSelect(optionNum);
+		} while (optionNum != -1 && optionNum != 2 && optionNum != 3);
+	}
+
+	currentWordPointer = nullptr;
 }
 
-void displayAllSavedWordsToEdit(wstring& language)
+void displayAllSavedWordsToEdit(wstring&)
 {
 	short optionNum = 0;
 	wstring filterText = L"";
@@ -288,7 +322,7 @@ void displayAllSavedWordsToEdit(wstring& language)
 		wconsoleMenu displayWords;
 		wstring selectText;
 
-		getWords(currentLanguageDirrectory, words);
+		getWords(ProgramDirectories::getPathToDirectory(currentLanguage, currentStage), words);
 		if (words.size() == 0)
 		{
 			wcout << "Words not found!" << endl;
@@ -308,29 +342,49 @@ void displayAllSavedWordsToEdit(wstring& language)
 		else
 		{
 			selectText = L"Select word:";
+			displayWords = wconsoleMenu(words, functions, selectText);
 			displayWords.singleSelect(optionNum);
 		}
 
 	} while (optionNum != -1);
 }
 
-void addNewOrView(wstring& language)
+void addNewOrEdit(wstring& stage)
 {
-	currentLanguageDirrectory = globalPath + L"\\Unlearned\\" + language + L" Words";
-	createDirrectory(currentLanguageDirrectory);
+	currentStage = stage;
 
-	vector<wstring> options = { L"Edit saved words" , L"Add new word" };
-	vector<void (*)(wstring&)> functions = { displayAllSavedWordsToEdit , addWordFunction };
-	wconsoleMenu languageOfWord(options, functions, L"What do you want to do?", L"I changed my mind. Back, please");
-	languageOfWord.cyclicSelect();
+	if (currentStage == ProgramDirectories::stages.unlearned)
+	{
+		vector<wstring> options = { L"Edit saved words" , L"Add new word" , L"Get several random words from learned" ,
+			(L"Convert words from " + ProgramDirectories::reverseLanguage(currentLanguage)) };
+		vector<void (*)(wstring&)> functions = { displayAllSavedWordsToEdit , addWordFunction , getRandomWordsFromLearned , convertWordsFromAnotherLanguage };
+		wconsoleMenu languageOfWord(options, functions, L"What do you want to do?", L"I changed my mind. Back, please");
+		languageOfWord.cyclicSelect();
+	}
+	else
+	{
+		displayAllSavedWordsToEdit(currentStage);
+	}
 
-	currentLanguageDirrectory.clear();
+	currentStage.clear();
 }
 
-void manageWordsOption(wstring&)
+void wordsStageToManage(wstring& language)
 {
-	vector<wstring> languages = { firstLanguage, secondLanguage };
-	vector<void (*)(wstring&)> functions = functionMultiplier(addNewOrView, languages.size());
+	currentLanguage = language;
+
+	vector<wstring> stageOfWords = { ProgramDirectories::stages.unlearned , ProgramDirectories::stages.learned };
+	vector<void (*)(wstring&)> functions = functionMultiplier(addNewOrEdit, stageOfWords.size());
+	wconsoleMenu editWordsMenu(stageOfWords, functions, L"Select the language of words you want to see", L"I changed my mind. Back, please");
+	editWordsMenu.singleSelect();
+
+	currentLanguage.clear();
+}
+
+void wordsLanguageToManage(wstring&)
+{
+	vector<wstring> languages = { ProgramDirectories::languages.native , ProgramDirectories::languages.target };
+	vector<void (*)(wstring&)> functions = functionMultiplier(wordsStageToManage, languages.size());
 	wconsoleMenu languageOfWord(languages, functions, L"Select the language of the saved words you want to manage", L"I changed my mind. Back, please");
 	languageOfWord.singleSelect();
 }

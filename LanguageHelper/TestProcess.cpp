@@ -1,262 +1,232 @@
 #include "TestProcess.h"
-wstring currentLanguageDirrectory;
-wstring currentLanguageDirrectoryWithLearnedWords;
-map<wstring, int> amountCorrectAnswersInOpenTestMap;
-bool changesInAmountCorrectAnswersInOpenTestMap;
-const short AMOUNT_OF_CORRECT_ANSWERS_TO_DELETE = 4;
 
-void multipleChoiceTest(wstring&)
+wstring currentLanguage;
+wstring currentStage;
+const short AMOUNT_OF_CORRECT_ANSWERS_TO_DELETE = 3;
+
+void workOnMistakes(wstring&)
 {
-	int amountOfRepeats;
-	int amountOfAnswers;
+	vector<wstring> unpassedWords;
 
-	wcout << L"Enter amount of test repetitions (greater than zero): ";
-	wcin >> amountOfRepeats;
-	wcin.ignore(LLONG_MAX, '\n');
-
-	if (amountOfRepeats <= 0)
+	getVectorFromWfile(ProgramDirectories::getPathToFile(ProgramDirectories::programFiles.unpassedWords, currentLanguage), unpassedWords);
+	if (unpassedWords.empty())
 	{
-		wcout << L"Amount of test repetitions can't be less than one." << endl;
+		wcout << L"No one mistake!" << endl;
 		_wsystem(L"pause");
 		return;
 	}
 
-	wcout << L"Enter amount of answers in the test (greater than one and less than twenty one): ";
-	wcin >> amountOfAnswers;
-	wcin.ignore(LLONG_MAX, '\n');
-
-	if (amountOfAnswers <= 1)
+	int currentWordIndex = 0;
+	while (true)
 	{
-		wcout << L"Amount of answers in the test can't be less than two." << endl;
-		_wsystem(L"pause");
-		return;
-	}
-	if (amountOfAnswers >= 21)
-	{
-		wcout << L"Amount of answers in the test can't be greater than twenty." << endl;
-		_wsystem(L"pause");
-		return;
-	}
+		wstring word = unpassedWords[currentWordIndex];
 
-	int amountOfCorrectAnswers = 0;
-	for (int i = 0; i < amountOfRepeats; i++)
-	{
-		wstring word = randomWordFrom(currentLanguageDirrectory);
-		if (word == L"") return;
+		vector<wstring> translations;
+		wstring answer;
 
-		vector<wstring> rightTranslations;
-		getTranslations(currentLanguageDirrectory + L"\\" + word, rightTranslations);
+		wcout << L"Leave empty to exit." << endl;
+		wcout << word << L" is: ";
 
-		vector<wstring> answers;
-		answers.push_back(rightTranslations[radnomNumber() % rightTranslations.size()]);
+		getline(wcin, answer);
+		if (answer.empty()) { break; }
+		wstringToLower(answer);
 
-		for (int j = 0; j < amountOfAnswers - 1; j++)
+		getVectorFromWfile(ProgramDirectories::getPathToFile(word, currentLanguage, currentStage), translations, true);
+		if (sucsessFeedback(answer, translations))
 		{
-			vector<wstring> translations;
-			getTranslations(currentLanguageDirrectory + L"\\" + randomWordFrom(currentLanguageDirrectory, false), translations);
-
-			wstring answer = translations[radnomNumber() % translations.size()];
-			answers.push_back(answer);
-		}
-
-		shuffleVector(answers);
-		short answerNumber = 0;
-		wconsoleMenu test(answers, word + L" is:");
-		test.singleSelect(answerNumber);
-
-		for (int j = 0; j < rightTranslations.size(); j++)
-		{
-			if (rightTranslations[j] == answers[answerNumber])
+			unpassedWords.erase(unpassedWords.begin() + currentWordIndex);
+			if (unpassedWords.empty())
 			{
-				amountOfCorrectAnswers++;
-				wcout << L"You are right!" << endl;
-				break;
-			}
-
-			if (j == rightTranslations.size() - 1)
-			{
-				wcout << L"Wrong!" << endl;
+				_wsystem(L"cls");
+				wcout << L"All mistakes have fixed!" << endl;
+				_wsystem(L"pause");
 				break;
 			}
 		}
+		else { currentWordIndex++; }
 
-		wcout << L"Right translations:" << endl;
-		for (int k = 0; k < rightTranslations.size(); k++)
-			wcout << rightTranslations[k] << endl;
-		_wsystem(L"pause");
+		if (currentWordIndex >= unpassedWords.size()) { currentWordIndex = 0; }
+
+		_wsystem(L"cls");
 	}
 
+	saveVectorToWfile(ProgramDirectories::getPathToFile(ProgramDirectories::programFiles.unpassedWords, currentLanguage), unpassedWords);
 	_wsystem(L"cls");
-	wcout << L"You was right in " << amountOfCorrectAnswers * 100 / amountOfRepeats << L"% of cases" << endl;
-	_wsystem(L"pause");
 }
 
 void openAnswerTest(wstring&)
 {
-	int amountOfRepeats;
-	wcout << L"Enter amount of test repetitions (greater than zero): ";
-	wcin >> amountOfRepeats;
-	wcin.ignore(LLONG_MAX, '\n');
+	vector<wstring> allWords;
 
-	if (amountOfRepeats <= 0)
+	getWords(ProgramDirectories::getPathToDirectory(currentLanguage, currentStage), allWords);
+	if (currentStage == ProgramDirectories::stages.unlearned)
 	{
-		wcout << L"Amount of test repetitions can't be less than one." << endl;
-		_wsystem(L"pause");
-		return;
-	}
+		int amountOfRepeats = 0;
+		int correctAnswers = 0;
+		vector<wstring> usedWords;
+		vector<wstring> unusedWords;
+		map<wstring, int> overallCorrectAnswers;
+		vector<wstring> unpassedWords;
 
-	int amountOfCorrectAnswers = 0;
-	for (int i = 0; i < amountOfRepeats; i++)
-	{
+		getVectorFromWfile(ProgramDirectories::getPathToFile(ProgramDirectories::programFiles.unpassedWords, currentLanguage), unpassedWords);
+		if (!unpassedWords.empty())
+		{
+			wcout << L"Fix mistakes and come back." << endl;
+			_wsystem(L"pause");
+			return;
+		}
+
+		getMapFromWfile(ProgramDirectories::getPathToFile(ProgramDirectories::programFiles.successSave, currentLanguage), overallCorrectAnswers);
+		getVectorFromWfile(ProgramDirectories::getPathToFile(ProgramDirectories::programFiles.usedWords, currentLanguage), usedWords);
+		vectorDifference(allWords, usedWords, unusedWords);
+		while (true)
+		{
+			wstring word = randomWstring(unusedWords);
+			if (word.empty())
+			{
+				_wsystem(L"cls");
+				break;
+			}
+
+			usedWords.push_back(word);
+			ignore = remove(unusedWords.begin(), unusedWords.end(), word);
+			if (usedWords.size() > unusedWords.size())
+			{
+				unusedWords.push_back(usedWords.front());
+				usedWords.erase(usedWords.begin());
+			}
+
+			vector<wstring> translations;
+			wstring answer;
+
+			wcout << L"Leave empty to exit." << endl;
+			wcout << word << L" is: ";
+
+			getline(wcin, answer);
+			if (answer.empty()) { break; }
+			wstringToLower(answer);
+
+			amountOfRepeats++;
+			getVectorFromWfile(ProgramDirectories::getPathToFile(word, currentLanguage, currentStage), translations, true);
+			if (sucsessFeedback(answer, translations))
+			{
+				correctAnswers++;
+				overallCorrectAnswers[word]++;
+			}
+			else
+			{
+				overallCorrectAnswers[word] = 0;
+				unpassedWords.push_back(word);
+			}
+
+			if (overallCorrectAnswers[word] >= AMOUNT_OF_CORRECT_ANSWERS_TO_DELETE)
+			{
+				moveWfile(ProgramDirectories::getPathToFile(word, currentLanguage, currentStage),
+					ProgramDirectories::getPathToDirectory(currentLanguage, ProgramDirectories::reverseStage(currentStage)));
+
+				ignore = remove(usedWords.begin(), usedWords.end(), word);
+				overallCorrectAnswers.erase(word);
+			}
+
+			_wsystem(L"cls");
+		}
+
+		if (amountOfRepeats > 0)
+		{
+			wcout << L"You was right in ";
+			wcout << correctAnswers * 100 / amountOfRepeats;
+			wcout << L"% of cases" << endl;
+
+			if (correctAnswers < amountOfRepeats)
+			{
+				saveVectorToWfile(ProgramDirectories::getPathToFile(ProgramDirectories::programFiles.unpassedWords, currentLanguage), unpassedWords);
+			}
+			saveMapToWfile(ProgramDirectories::getPathToFile(ProgramDirectories::programFiles.successSave, currentLanguage), overallCorrectAnswers);
+
+			_wsystem(L"pause");
+		}
+
+		saveVectorToWfile(ProgramDirectories::getPathToFile(ProgramDirectories::programFiles.usedWords, currentLanguage), usedWords);
 		_wsystem(L"cls");
-
-		wstring word = randomWordFrom(currentLanguageDirrectory);
-		if (word == L"") return;
-		wcout << word << L" is: ";
-
-		vector<wstring> translations;
-		getTranslations(currentLanguageDirrectory + L"\\" + word, translations);
-
-		wstring answer;
-		getline(wcin, answer);
-		wstringToLower(answer);
-
-		double minDistance = DBL_MAX;
-
-		for (wstring translation : translations)
-			minDistance = min(minDistance, (wconsoleMenu::DamerauLevenshteinDistance(translation, answer) / translation.length()));
-
-		if (minDistance == 0.0)
-		{
-			wcout << L"Absolutely correct!" << endl;
-
-			if (translations.size() == 1)
-			{
-				wcout << L"Right is " << translations[0] << endl;
-			}
-			else
-			{
-				wcout << L"Right is one of:" << endl;
-				for (int j = 0; j < translations.size(); j++)
-					wcout << translations[j] << endl;
-			}
-
-			amountOfCorrectAnswers++;
-			amountCorrectAnswersInOpenTestMap[word]++;
-			changesInAmountCorrectAnswersInOpenTestMap = true;
-
-			_wsystem(L"pause");
-		}
-		else if (minDistance <= 0.34)
-		{
-			wcout << L"Almost correct." << endl;
-
-			if (translations.size() == 1)
-			{
-				wcout << L"Correct would be " << translations[0] << endl;
-			}
-			else
-			{
-				wcout << L"Correct would be one of:" << endl;
-				for (int j = 0; j < translations.size(); j++)
-					wcout << translations[j] << endl;
-			}
-
-			wcout << L"But it will be scored!" << endl;
-
-			amountOfCorrectAnswers++;
-			amountCorrectAnswersInOpenTestMap[word]++;
-			changesInAmountCorrectAnswersInOpenTestMap = true;
-
-			_wsystem(L"pause");
-		}
-		else
-		{
-			wcout << L"Nope." << endl;
-
-			if (translations.size() == 1)
-			{
-				wcout << L"Correct would be " << translations[0] << endl;
-			}
-			else
-			{
-				wcout << L"Correct would be one of:" << endl;
-				for (int j = 0; j < translations.size(); j++)
-					wcout << translations[j] << endl;
-			}
-
-			wcout << L"It won't be scored!" << endl;
-
-			if (amountCorrectAnswersInOpenTestMap[word] != 0)
-			{
-				changesInAmountCorrectAnswersInOpenTestMap = true;
-				amountCorrectAnswersInOpenTestMap[word] = 0;
-			}
-
-			_wsystem(L"pause");
-		}
-
-		if (amountCorrectAnswersInOpenTestMap[word] >= AMOUNT_OF_CORRECT_ANSWERS_TO_DELETE)
-		{
-			changesInAmountCorrectAnswersInOpenTestMap = true;
-			amountCorrectAnswersInOpenTestMap.erase(word);
-
-			wstring wordDirrectory = currentLanguageDirrectory + L"\\" + word;
-			wstring command = L"move \"" + wordDirrectory + L"\" \"" + currentLanguageDirrectoryWithLearnedWords + L"\"";
-
-			_wsystem(command.c_str());
-		}
 	}
-
-	_wsystem(L"cls");
-	wcout << L"You was right in " << amountOfCorrectAnswers * 100 / amountOfRepeats << L"% of cases" << endl;
-	_wsystem(L"pause");
-}
-
-void testingType(wstring& language)
-{
-	changesInAmountCorrectAnswersInOpenTestMap = false;
-	currentLanguageDirrectory = globalPath + L"\\Unlearned\\" + language + L" Words";
-	currentLanguageDirrectoryWithLearnedWords = globalPath + L"\\Learned\\" + language + L" Words";
-
-	createDirrectory(currentLanguageDirrectory);
-	createDirrectory(currentLanguageDirrectoryWithLearnedWords);
-
-	wstring pathOfFileWithCorrectAnswersCounter = globalPath + L"\\Unlearned\\" + language + L"CorrectAnswersCounter.save";
-
-	wifstream wordFile(pathOfFileWithCorrectAnswersCounter);
-	wordFile.imbue(std::locale(wordFile.getloc(), new codecvt_utf8<wchar_t, 0x10ffff, consume_header>()));
-
-	for (wstring word; getline(wordFile, word, L'>');)
+	else
 	{
-		wstring counter;
-		getline(wordFile, counter);
-		amountCorrectAnswersInOpenTestMap.insert(pair<wstring, int>(word, stoi(counter)));
-	}
+		while (true)
+		{
+			wstring word = randomWstring(allWords);
+			vector<wstring> translations;
+			wstring answer;
 
-	wordFile.close();
+			if (word.empty())
+			{
+				wcout << L"Words are run out" << endl;
+				_wsystem(L"pause");
+				_wsystem(L"cls");
+				break;
+			}
 
-	vector<wstring> testingTypes = { L"Open answer test" , L"Multiple choice test" };
-	vector<void (*)(wstring&)> functions = { openAnswerTest , multipleChoiceTest };
-	wconsoleMenu testingTypeMenu(testingTypes, functions, L"Select the type of test", L"I changed my mind. Back, please");
-	testingTypeMenu.singleSelect();
+			wcout << L"Leave empty to exit." << endl;
+			wcout << word << L" is: ";
 
-	if (changesInAmountCorrectAnswersInOpenTestMap)
-	{
-		wofstream wordFile(pathOfFileWithCorrectAnswersCounter);
-		wordFile.imbue(std::locale(wordFile.getloc(), new codecvt_utf8<wchar_t, 0x10ffff, consume_header>()));
+			getline(wcin, answer);
+			if (answer.empty())
+			{
+				_wsystem(L"cls");
+				break;
+			}
+			wstringToLower(answer);
 
-		for (map<wstring, int>::iterator it = amountCorrectAnswersInOpenTestMap.begin(); it != amountCorrectAnswersInOpenTestMap.end(); it++)
-			wordFile << it->first << L'>' << it->second << endl;
+			getVectorFromWfile(ProgramDirectories::getPathToFile(word, currentLanguage, currentStage), translations, true);
+			if (!sucsessFeedback(answer, translations))
+			{
+				moveWfile(ProgramDirectories::getPathToFile(word, currentLanguage, currentStage),
+					ProgramDirectories::getPathToDirectory(currentLanguage, ProgramDirectories::reverseStage(currentStage)));
 
-		wordFile.close();
+				ignore = remove(allWords.begin(), allWords.end(), word);
+			}
+
+			_wsystem(L"cls");
+		}
 	}
 }
 
-void testingOption(wstring&)
+void testingType(wstring& stage)
 {
-	vector<wstring> testingTypes = { firstLanguage, secondLanguage };
+	currentStage = stage;
+
+	if (currentStage == ProgramDirectories::stages.unlearned)
+	{
+		vector<wstring> testingTypes = { L"Randomised test" , L"Work on mistakes" };
+		vector<void (*)(wstring&)> functions = { openAnswerTest , workOnMistakes };
+		wconsoleMenu testingTypeMenu(testingTypes, functions, L"Select the type of test", L"I changed my mind. Back, please");
+		testingTypeMenu.cyclicSelect();
+	}
+	else
+	{
+		openAnswerTest(currentStage);
+	}
+
+	currentStage.clear();
+}
+
+void wordsStageToTest(wstring& language)
+{
+	currentLanguage = language;
+
+	vector<wstring> testingTypes = { ProgramDirectories::stages.unlearned , ProgramDirectories::stages.learned };
 	vector<void (*)(wstring&)> functions = functionMultiplier(testingType, testingTypes.size());
 	wconsoleMenu testingTypeMenu(testingTypes, functions, L"Select the language of words you will translate", L"I changed my mind. Back, please");
+
+	testingTypeMenu.singleSelect();
+
+	currentLanguage.clear();
+}
+
+void wordsLanguageToTest(wstring&)
+{
+	vector<wstring> languages = { ProgramDirectories::languages.native , ProgramDirectories::languages.target };
+	vector<void (*)(wstring&)> functions = functionMultiplier(wordsStageToTest, languages.size());
+	wconsoleMenu testingTypeMenu(languages, functions, L"Select the language of words you will translate", L"I changed my mind. Back, please");
+
 	testingTypeMenu.singleSelect();
 }
