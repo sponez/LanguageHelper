@@ -5,8 +5,28 @@
 #include "ViewProcess.h"
 using namespace std;
 
-int main(int argc, wchar_t* argv[])
+int main(int argc, char* argv[])
 {
+	if (argc == 1)
+	{
+		converterFunction = false;
+	}
+	else if (argc == 2 && !strcmp(argv[1], "conv-on"))
+	{
+		converterFunction = true;
+		wcout << L"Converter function: ";
+		wcout << boolalpha;
+		wcout << converterFunction;
+		wcout << noboolalpha;
+		wcout << endl;
+		_wsystem(L"pause");
+	}
+	else
+	{
+		wcout << L"Invalid command" << endl;
+		return INT_MIN;
+	}
+
 	ProgramDirectories::getProgramDirectories();
 
 	vector<wstring> options = { L"View saved words" , L"Testing" , L"Manage words" };

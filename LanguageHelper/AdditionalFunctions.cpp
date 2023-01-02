@@ -241,3 +241,8 @@ void addAllPairsCorrespondencesToSetFrom(wstring path, set<pair<wstring, wstring
 		}
 	}
 }
+
+bool contains(vector<wstring>& vector, wstring& element)
+{
+	return (find(vector.begin(), vector.end(), element) != vector.end());
+}

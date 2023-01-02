@@ -32,3 +32,4 @@ void printVector(vector<wstring> vector, wstring separator = L"\n", bool newLine
 void printTranslations(vector<wstring> translations);
 bool sucsessFeedback(wstring answer, vector<wstring> translations);
 void addAllPairsCorrespondencesToSetFrom(wstring path, set<pair<wstring, wstring>>& correspondences, bool reverseOrder = false);
+bool contains(vector<wstring>& vector, wstring& element);
