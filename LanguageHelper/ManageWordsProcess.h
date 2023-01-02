@@ -2,9 +2,7 @@
 #include "ProgramDirectories.h"
 #include "AdditionalFunctions.h"
 
-bool converterFunction;
-
-void convertWordsFromAnotherLanguage(wstring&);
+void convertWordsFromAnotherLanguage(wstring language);
 void getRandomWordsFromLearned(wstring&);
 void addTranslationsManual(wstring& word, wstring& wordPath, vector<wstring>& translations);
 void deleteTranslationManual(wstring& word, wstring& wordPath, vector<wstring>& translations, wstring& translationToDelete);

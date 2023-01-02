@@ -17,13 +17,13 @@ void wordViewer(wstring& word)
 
 void displaySavedWords(wstring& stage)
 {
-	currentStage = stage;
-
+	vector<wstring> words;
 	vector<void (*)(wstring&)> functions;
 	wconsoleMenu displayWords;
 	wstring selectText;
 
-	vector<wstring> words;
+	currentStage = stage;
+
 	getWords(ProgramDirectories::getPathToDirectory(currentLanguage, currentStage), words);
 	if (words.size() == 0)
 	{
@@ -60,13 +60,14 @@ void displaySavedWords(wstring& stage)
 
 void wordsStageToView(wstring& language)
 {
-	currentLanguage = language;
-
 	vector<wstring> stageOfWords = { ProgramDirectories::stages.unlearned , ProgramDirectories::stages.learned };
 	vector<void (*)(wstring&)> functions = functionMultiplier(displaySavedWords, stageOfWords.size());
-	wconsoleMenu testingTypeMenu(stageOfWords, functions, L"Select the language of words you want to see", L"I changed my mind. Back, please");
-	testingTypeMenu.singleSelect();
+	wstring selectText = L"Select a stage";
+	wstring exitText = L"Back";
+	wconsoleMenu testingTypeMenu(stageOfWords, functions, selectText, exitText);
 
+	currentLanguage = language;
+	testingTypeMenu.singleSelect();
 	currentLanguage.clear();
 }
 
@@ -74,6 +75,9 @@ void wordsLanguageToView(wstring&)
 {
 	vector<wstring> languages = { ProgramDirectories::languages.native , ProgramDirectories::languages.target };
 	vector<void (*)(wstring&)> functions = functionMultiplier(wordsStageToView, languages.size());
-	wconsoleMenu testingTypeMenu(languages, functions, L"Select the language of words you want to see", L"I changed my mind. Back, please");
+	wstring selectText = L"Select a language";
+	wstring exitText = L"Back";
+	wconsoleMenu testingTypeMenu(languages, functions, selectText, exitText);
+
 	testingTypeMenu.singleSelect();
 }

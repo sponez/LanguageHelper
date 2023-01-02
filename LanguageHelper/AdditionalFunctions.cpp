@@ -152,14 +152,6 @@ void saveMapToWfile(wstring filePath, map<wstring, int>& sourseMap)
 	targetFile.close();
 }
 
-void moveWfile(wstring soursePath, wstring targetPath)
-{
-	if (!isPathExist(soursePath)) return;
-
-	wstring command = L"move \"" + soursePath + L"\" \"" + targetPath + L"\"";
-	_wsystem(command.c_str());
-}
-
 void printVector(vector<wstring> vector, wstring separator, bool newLineAfter)
 {
 	if (vector.empty()) return;
@@ -245,4 +237,14 @@ void addAllPairsCorrespondencesToSetFrom(wstring path, set<pair<wstring, wstring
 bool contains(vector<wstring>& vector, wstring& element)
 {
 	return (find(vector.begin(), vector.end(), element) != vector.end());
+}
+
+bool askQuestion(wstring question)
+{
+	vector<wstring> options = { L"Yes" , L"No" };
+	wconsoleMenu reserseAdd(options, question);
+	short result = 0;
+	reserseAdd.singleSelect(result);
+
+	return (result == 0);
 }

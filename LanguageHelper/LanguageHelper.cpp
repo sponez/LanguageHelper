@@ -7,30 +7,32 @@ using namespace std;
 
 int main(int argc, char* argv[])
 {
+	ProgramDirectories::getProgramDirectories();
+
 	if (argc == 1)
 	{
-		converterFunction = false;
+		vector<wstring> options = { L"View saved words" , L"Testing" , L"Manage words" };
+		vector<void (*)(wstring&)> functions = { wordsLanguageToView, wordsLanguageToTest , wordsLanguageToManage };
+		wstring selectText = L"Select an action";
+		wstring exitText = L"Close application";
+		wconsoleMenu languageHelperMenu(options, functions, selectText, exitText);
+
+		languageHelperMenu.cyclicSelect();
 	}
-	else if (argc == 2 && !strcmp(argv[1], "conv-on"))
+	else if (argc == 2 && !strcmp(argv[1], "convert"))
 	{
-		converterFunction = true;
-		wcout << L"Converter function: ";
-		wcout << boolalpha;
-		wcout << converterFunction;
-		wcout << noboolalpha;
-		wcout << endl;
-		_wsystem(L"pause");
+		vector<wstring> options = { ProgramDirectories::languages.native , ProgramDirectories::languages.target };
+		wstring selectText = L"Select a sourse language:";
+		wconsoleMenu languageHelperMenu(options, selectText);
+		short optionNum = 0;
+
+		languageHelperMenu.singleSelect(optionNum);
+		if (optionNum == 0) { convertWordsFromAnotherLanguage(ProgramDirectories::languages.target); }
+		else { convertWordsFromAnotherLanguage(ProgramDirectories::languages.native); }
 	}
 	else
 	{
-		wcout << L"Invalid command" << endl;
+		wcout << L"An invalid command" << endl;
 		return INT_MIN;
 	}
-
-	ProgramDirectories::getProgramDirectories();
-
-	vector<wstring> options = { L"View saved words" , L"Testing" , L"Manage words" };
-	vector<void (*)(wstring&)> functions = { wordsLanguageToView, wordsLanguageToTest , wordsLanguageToManage };
-	wconsoleMenu languageHelperMenu(options, functions, L"What do you want to do", L"Close application");
-	languageHelperMenu.cyclicSelect();
 }

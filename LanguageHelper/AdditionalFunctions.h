@@ -27,9 +27,9 @@ void getVectorFromWfile(wstring filePath, vector<wstring>& emptyVector, bool rem
 void saveVectorToWfile(wstring filePath, vector<wstring>& sourseVector);
 void getMapFromWfile(wstring filePath, map<wstring, int>& emptyMap);
 void saveMapToWfile(wstring filePath, map<wstring, int>& sourseMap);
-void moveWfile(wstring soursePath, wstring targetPath);
 void printVector(vector<wstring> vector, wstring separator = L"\n", bool newLineAfter = true);
 void printTranslations(vector<wstring> translations);
 bool sucsessFeedback(wstring answer, vector<wstring> translations);
 void addAllPairsCorrespondencesToSetFrom(wstring path, set<pair<wstring, wstring>>& correspondences, bool reverseOrder = false);
 bool contains(vector<wstring>& vector, wstring& element);
+bool askQuestion(wstring question);

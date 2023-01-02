@@ -82,6 +82,7 @@ void openAnswerTest(wstring&)
 		while (true)
 		{
 			wstring word = randomWstring(unusedWords);
+			vector<wstring>::iterator wordIt = find(unusedWords.begin(), unusedWords.end(), word);
 			if (word.empty())
 			{
 				_wsystem(L"cls");
@@ -89,7 +90,7 @@ void openAnswerTest(wstring&)
 			}
 
 			usedWords.push_back(word);
-			ignore = remove(unusedWords.begin(), unusedWords.end(), word);
+			unusedWords.erase(wordIt);
 			if (usedWords.size() > unusedWords.size())
 			{
 				unusedWords.push_back(usedWords.front());
@@ -121,10 +122,12 @@ void openAnswerTest(wstring&)
 
 			if (overallCorrectAnswers[word] >= AMOUNT_OF_CORRECT_ANSWERS_TO_DELETE)
 			{
-				moveWfile(ProgramDirectories::getPathToFile(word, currentLanguage, currentStage),
-					ProgramDirectories::getPathToDirectory(currentLanguage, ProgramDirectories::reverseStage(currentStage)));
+				vector<wstring>::iterator wordIt = find(usedWords.begin(), usedWords.end(), word);
 
-				ignore = remove(usedWords.begin(), usedWords.end(), word);
+				MoveFileW(ProgramDirectories::getPathToFile(word, currentLanguage, ProgramDirectories::stages.unlearned).c_str(),
+					ProgramDirectories::getPathToFile(word, currentLanguage, ProgramDirectories::stages.learned).c_str());
+
+				usedWords.erase(wordIt);
 				overallCorrectAnswers.erase(word);
 			}
 
@@ -179,10 +182,12 @@ void openAnswerTest(wstring&)
 			getVectorFromWfile(ProgramDirectories::getPathToFile(word, currentLanguage, currentStage), translations, true);
 			if (!sucsessFeedback(answer, translations))
 			{
-				moveWfile(ProgramDirectories::getPathToFile(word, currentLanguage, currentStage),
-					ProgramDirectories::getPathToDirectory(currentLanguage, ProgramDirectories::reverseStage(currentStage)));
+				vector<wstring>::iterator wordIt = find(allWords.begin(), allWords.end(), word);
 
-				ignore = remove(allWords.begin(), allWords.end(), word);
+				MoveFileW(ProgramDirectories::getPathToFile(word, currentLanguage, ProgramDirectories::stages.learned).c_str(),
+					ProgramDirectories::getPathToFile(word, currentLanguage, ProgramDirectories::stages.unlearned).c_str());
+
+				allWords.erase(wordIt);
 			}
 
 			_wsystem(L"cls");
@@ -198,27 +203,27 @@ void testingType(wstring& stage)
 	{
 		vector<wstring> testingTypes = { L"Randomised test" , L"Work on mistakes" };
 		vector<void (*)(wstring&)> functions = { openAnswerTest , workOnMistakes };
-		wconsoleMenu testingTypeMenu(testingTypes, functions, L"Select the type of test", L"I changed my mind. Back, please");
+		wstring selectText = L"Select a type of test";
+		wstring exitText = L"Back";
+		wconsoleMenu testingTypeMenu(testingTypes, functions, selectText, exitText);
+
 		testingTypeMenu.cyclicSelect();
 	}
-	else
-	{
-		openAnswerTest(currentStage);
-	}
+	else { openAnswerTest(currentStage); }
 
 	currentStage.clear();
 }
 
 void wordsStageToTest(wstring& language)
 {
+	vector<wstring> stageOfWords = { ProgramDirectories::stages.unlearned , ProgramDirectories::stages.learned };
+	vector<void (*)(wstring&)> functions = functionMultiplier(testingType, stageOfWords.size());
+	wstring selectText = L"Select a stage";
+	wstring exitText = L"Back";
+	wconsoleMenu testingTypeMenu(stageOfWords, functions, selectText, exitText);
+
 	currentLanguage = language;
-
-	vector<wstring> testingTypes = { ProgramDirectories::stages.unlearned , ProgramDirectories::stages.learned };
-	vector<void (*)(wstring&)> functions = functionMultiplier(testingType, testingTypes.size());
-	wconsoleMenu testingTypeMenu(testingTypes, functions, L"Select the language of words you will translate", L"I changed my mind. Back, please");
-
 	testingTypeMenu.singleSelect();
-
 	currentLanguage.clear();
 }
 
@@ -226,7 +231,9 @@ void wordsLanguageToTest(wstring&)
 {
 	vector<wstring> languages = { ProgramDirectories::languages.native , ProgramDirectories::languages.target };
 	vector<void (*)(wstring&)> functions = functionMultiplier(wordsStageToTest, languages.size());
-	wconsoleMenu testingTypeMenu(languages, functions, L"Select the language of words you will translate", L"I changed my mind. Back, please");
+	wstring selectText = L"Select a language";
+	wstring exitText = L"Back";
+	wconsoleMenu testingTypeMenu(languages, functions, selectText, exitText);
 
 	testingTypeMenu.singleSelect();
 }
