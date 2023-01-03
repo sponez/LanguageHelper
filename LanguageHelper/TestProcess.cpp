@@ -7,6 +7,7 @@ const short AMOUNT_OF_CORRECT_ANSWERS_TO_DELETE = 3;
 void workOnMistakes(wstring&)
 {
 	vector<wstring> unpassedWords;
+	map<wstring, int> overallCorrectAnswers;
 
 	getVectorFromWfile(ProgramDirectories::getPathToFile(ProgramDirectories::programFiles.unpassedWords, currentLanguage), unpassedWords);
 	if (unpassedWords.empty())
@@ -16,11 +17,12 @@ void workOnMistakes(wstring&)
 		return;
 	}
 
+	getMapFromWfile(ProgramDirectories::getPathToFile(ProgramDirectories::programFiles.successSave, currentLanguage), overallCorrectAnswers);
+
 	int currentWordIndex = 0;
 	while (true)
 	{
 		wstring word = unpassedWords[currentWordIndex];
-
 		vector<wstring> translations;
 		wstring answer;
 
@@ -35,6 +37,7 @@ void workOnMistakes(wstring&)
 		if (sucsessFeedback(answer, translations))
 		{
 			unpassedWords.erase(unpassedWords.begin() + currentWordIndex);
+			overallCorrectAnswers.erase(word);
 			if (unpassedWords.empty())
 			{
 				_wsystem(L"cls");
@@ -51,6 +54,7 @@ void workOnMistakes(wstring&)
 	}
 
 	saveVectorToWfile(ProgramDirectories::getPathToFile(ProgramDirectories::programFiles.unpassedWords, currentLanguage), unpassedWords);
+	saveMapToWfile(ProgramDirectories::getPathToFile(ProgramDirectories::programFiles.successSave, currentLanguage), overallCorrectAnswers);
 	_wsystem(L"cls");
 }
 
@@ -59,6 +63,14 @@ void openAnswerTest(wstring&)
 	vector<wstring> allWords;
 
 	getWords(ProgramDirectories::getPathToDirectory(currentLanguage, currentStage), allWords);
+	if (allWords.empty())
+	{
+		wcout << L"Words not found!" << endl;
+		_wsystem(L"pause");
+		_wsystem(L"cls");
+		return;
+	}
+
 	if (currentStage == ProgramDirectories::stages.unlearned)
 	{
 		int amountOfRepeats = 0;
@@ -83,8 +95,11 @@ void openAnswerTest(wstring&)
 		{
 			wstring word = randomWstring(unusedWords);
 			vector<wstring>::iterator wordIt = find(unusedWords.begin(), unusedWords.end(), word);
+
 			if (word.empty())
 			{
+				wcout << L"Words are run out!" << endl;
+				_wsystem(L"pause");
 				_wsystem(L"cls");
 				break;
 			}
@@ -114,11 +129,7 @@ void openAnswerTest(wstring&)
 				correctAnswers++;
 				overallCorrectAnswers[word]++;
 			}
-			else
-			{
-				overallCorrectAnswers[word] = 0;
-				unpassedWords.push_back(word);
-			}
+			else { overallCorrectAnswers[word] = 0; }
 
 			if (overallCorrectAnswers[word] >= AMOUNT_OF_CORRECT_ANSWERS_TO_DELETE)
 			{
@@ -142,10 +153,18 @@ void openAnswerTest(wstring&)
 
 			if (correctAnswers < amountOfRepeats)
 			{
+				for (map<wstring, int>::iterator wordProgress = overallCorrectAnswers.begin(); wordProgress != overallCorrectAnswers.end(); wordProgress++)
+				{
+					if (wordProgress->second == 0)
+					{
+						unpassedWords.push_back(wordProgress->first);
+					}
+				}
+
 				saveVectorToWfile(ProgramDirectories::getPathToFile(ProgramDirectories::programFiles.unpassedWords, currentLanguage), unpassedWords);
 			}
-			saveMapToWfile(ProgramDirectories::getPathToFile(ProgramDirectories::programFiles.successSave, currentLanguage), overallCorrectAnswers);
 
+			saveMapToWfile(ProgramDirectories::getPathToFile(ProgramDirectories::programFiles.successSave, currentLanguage), overallCorrectAnswers);
 			_wsystem(L"pause");
 		}
 
@@ -162,7 +181,7 @@ void openAnswerTest(wstring&)
 
 			if (word.empty())
 			{
-				wcout << L"Words are run out" << endl;
+				wcout << L"Words are run out!" << endl;
 				_wsystem(L"pause");
 				_wsystem(L"cls");
 				break;
