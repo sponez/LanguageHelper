@@ -1,16 +1,7 @@
 #pragma once
 #pragma warning(disable : 4996)
-#include <iostream>
-#include <codecvt>
-#include <fstream>
-#include <filesystem>
-#include <vector>
-#include <set>
-#include <algorithm>
-#include <string>
-#include <cmath>
-#include <random>
-#include <windows.h>
+#include "AdditionalFunctions.h"
+#include <map>
 using namespace std;
 
 class ProgramDirectories
@@ -53,6 +44,7 @@ public:
 
 	static wstring getPathToDirectory(wstring language = wstring(), wstring stage = wstring());
 	static wstring getPathToFile(wstring file, wstring language = wstring(), wstring stage = wstring());
+	static void removeWordFromProgramFiles(wstring word, wstring language);
 	static wstring reverseLanguage(wstring language);
 	static wstring reverseStage(wstring stage);
 	static void getProgramDirectories();

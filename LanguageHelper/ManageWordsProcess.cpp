@@ -99,28 +99,30 @@ void addTranslationsManual(wstring& word, wstring& wordPath, vector<wstring>& tr
 
 	while (true)
 	{
+		wstring translation;
+		wstring translationWhithoutBracket;
+
 		wcout << L"Leave empty to exit." << endl;
 		wcout << L"Enter a translation: ";
 
-		wstring translation;
-
 		getline(wcin, translation);
 		if (translation.empty()) { break; }
-		wstringToLower(translation);
+		wordToLowerCase(translation);
+		translationWhithoutBracket = wstring(translation);
+		removeTextInBracket(translationWhithoutBracket);
 
-		if (!contains(translations, translation))
+		if (!contains(translations, translationWhithoutBracket))
 		{
 			translations.push_back(translation);
 
 			wstring reverseWordPath;
 			vector<wstring> reverseTranslations;
 
-			removeTextInBracket(translation);
-			reverseWordPath = ProgramDirectories::getPathToFile(translation, ProgramDirectories::reverseLanguage(currentLanguage), ProgramDirectories::stages.unlearned);
-			getVectorFromWfile(reverseWordPath, reverseTranslations);
+			reverseWordPath = ProgramDirectories::getPathToFile(translationWhithoutBracket, ProgramDirectories::reverseLanguage(currentLanguage), ProgramDirectories::stages.unlearned);
+			getVectorFromWfile(reverseWordPath, reverseTranslations, true);
 			if (!contains(reverseTranslations, word))
 			{
-				wstring question = L"Add \"" + word + L"\" into the \"" + translation + L"\" word like translation?";
+				wstring question = L"Add translation \"" + word + L"\" into the word \"" + translationWhithoutBracket + L"\"?";
 				if (askQuestion(question))
 				{
 					reverseTranslations.push_back(word);
@@ -153,7 +155,7 @@ void addWordFunction(wstring&)
 		_wsystem(L"pause");
 		return;
 	}
-	wstringToLower(word);
+	wordToLowerCase(word);
 
 	wordPath = ProgramDirectories::getPathToFile(word, currentLanguage, currentStage);
 	if (isPathExist(wordPath))
@@ -169,24 +171,27 @@ void addWordFunction(wstring&)
 
 void deleteTranslationManual(wstring& word, wstring& wordPath, vector<wstring>& translations, wstring& translationToDelete)
 {
-	vector<wstring> reverseTranslations;
-	wstring reverseWordPath = ProgramDirectories::getPathToFile(translationToDelete, ProgramDirectories::reverseLanguage(currentLanguage), ProgramDirectories::stages.unlearned);
-
-	getVectorFromWfile(reverseWordPath, reverseTranslations);
-	if (contains(reverseTranslations, word))
+	if (currentStage == ProgramDirectories::stages.unlearned)
 	{
-		wstring question = L"Delete the word \"" + word + L"\" from the \"" + translationToDelete + L"\" word translations?";
-		if (askQuestion(question))
-		{
-			vector<wstring>::iterator it = find(reverseTranslations.begin(), reverseTranslations.end(), word);
-			reverseTranslations.erase(it);
+		vector<wstring> reverseTranslations;
+		wstring reverseWordPath = ProgramDirectories::getPathToFile(translationToDelete, ProgramDirectories::reverseLanguage(currentLanguage), ProgramDirectories::stages.unlearned);
 
-			if (!reverseTranslations.empty()) { saveVectorToWfile(reverseWordPath, reverseTranslations); }
-			else
+		getVectorFromWfile(reverseWordPath, reverseTranslations, true);
+		if (contains(reverseTranslations, word))
+		{
+			wstring question = L"Delete the translation \"" + word + L"\" from the word's \"" + translationToDelete + L"\" translations?";
+			if (askQuestion(question))
 			{
-				wcout << L"Translations for the \"" << translationToDelete << L"\" word didn't remain. It will be deleted." << endl;
-				_wsystem(L"pause");
-				_wremove(reverseWordPath.c_str());
+				vector<wstring>::iterator reverseWordIt = find(reverseTranslations.begin(), reverseTranslations.end(), word);
+				reverseTranslations.erase(reverseWordIt);
+				if (!reverseTranslations.empty()) { saveVectorToWfile(reverseWordPath, reverseTranslations); }
+				else
+				{
+					wcout << L"Translations for the word \"" << translationToDelete << L"\" didn't remain. It will be deleted." << endl;
+					_wsystem(L"pause");
+					_wremove(reverseWordPath.c_str());
+					ProgramDirectories::removeWordFromProgramFiles(translationToDelete, ProgramDirectories::reverseLanguage(currentLanguage));
+				}
 			}
 		}
 	}
@@ -204,10 +209,12 @@ void deleteWordFunction(wstring&)
 {
 	wstring wordPath = ProgramDirectories::getPathToFile(*currentWordPointer, currentLanguage, currentStage);
 	vector<wstring> translations;
-	getVectorFromWfile(wordPath, translations);
+	getVectorFromWfile(wordPath, translations, true);
 
 	while (!translations.empty()) { deleteTranslationManual(*currentWordPointer, wordPath, translations, translations.front()); }
 	_wremove(ProgramDirectories::getPathToFile(*currentWordPointer, currentLanguage, currentStage).c_str());
+	if (currentStage == ProgramDirectories::stages.unlearned) { ProgramDirectories::removeWordFromProgramFiles(*currentWordPointer, currentLanguage); }
+
 	wcout << "Done!" << endl;
 	_wsystem(L"pause");
 }
@@ -225,7 +232,7 @@ void addTranslationFunction(wstring&)
 {
 	wstring wordPath = ProgramDirectories::getPathToFile(*currentWordPointer, currentLanguage, currentStage);
 	vector<wstring> translations;
-	getVectorFromWfile(wordPath, translations);
+	getVectorFromWfile(wordPath, translations, true);
 	addTranslationsManual(*currentWordPointer, wordPath, translations);
 }
 
@@ -263,7 +270,14 @@ void translationEditorFunction(wstring& optionName)
 				reverseTranslations.erase(it);
 
 				if (!reverseTranslations.empty()) { saveVectorToWfile(reverseWordPath, reverseTranslations); }
-				else { _wremove(reverseWordPath.c_str()); }
+				else
+				{
+					_wremove(reverseWordPath.c_str());
+					if (currentStage == ProgramDirectories::stages.unlearned)
+					{
+						ProgramDirectories::removeWordFromProgramFiles(oldTranslation, ProgramDirectories::reverseLanguage(currentLanguage));
+					}
+				}
 
 				reverseTranslations.clear();
 			}
@@ -335,6 +349,7 @@ void displayTranslations(wstring&)
 	{
 		vector<wstring> translations;
 		vector<void (*)(wstring&)> functions;
+		wstring selectText;
 		wconsoleMenu displayTranslations;
 
 		getVectorFromWfile(pathToWord, translations);
@@ -350,13 +365,17 @@ void displayTranslations(wstring&)
 
 		if (translations.size() > 15)
 		{
-			displayTranslations = wconsoleMenu(translations, functions, L"Filter translations by characters: ");
+			selectText = L"Filter translations by characters: ";
+			displayTranslations = wconsoleMenu(translations, functions, selectText);
+
 			displayTranslations.singleSelectWithFilter(optionNum, filterText, skipFilter);
 			skipFilter = true;
 		}
 		else
 		{
-			displayTranslations = wconsoleMenu(translations, functions, L"Select a translation:");
+			selectText = L"Select a translation";
+			displayTranslations = wconsoleMenu(translations, functions, selectText);
+
 			displayTranslations.singleSelect(optionNum);
 		}
 
@@ -371,6 +390,7 @@ void ranameWordFunction(wstring&)
 	getVectorFromWfile(oldWordPath, translations);
 
 	_wremove(oldWordPath.c_str());
+	if (currentStage == ProgramDirectories::stages.unlearned) { ProgramDirectories::removeWordFromProgramFiles(oldWord, currentLanguage); }
 	wconsoleMenu::consoleWstringEditor(*currentWordPointer);
 
 	wstring newWord = wstring(*currentWordPointer);
@@ -422,14 +442,14 @@ void ranameWordFunction(wstring&)
 
 void wordEditor(wstring& word)
 {
-	currentWordPointer = &word;
-
 	vector<wstring> editorOptions;
 	vector<void (*)(wstring&)> functions;
 	wstring selectText = L"Select an action";
 	wstring exitText = L"Back";
 	wconsoleMenu editor;
 	short optionNum = 0;
+
+	currentWordPointer = &word;
 
 	if (currentStage == ProgramDirectories::stages.unlearned)
 	{
@@ -502,7 +522,7 @@ void addNewOrEdit(wstring& stage)
 
 	if (currentStage == ProgramDirectories::stages.unlearned)
 	{
-		vector<wstring> options = { L"Edit saved words" , L"Add new word" , L"Get several random words from learned" };
+		vector<wstring> options = { L"Edit saved words" , L"Add new word" , L"Get several random words from \"learned\"" };
 		vector<void (*)(wstring&)> functions = { displayAllSavedWordsToEdit , addWordFunction , getRandomWordsFromLearned };
 		wstring selectText = L"Select an action";
 		wstring exitText = L"Back";
@@ -521,10 +541,10 @@ void wordsStageToManage(wstring& language)
 	vector<void (*)(wstring&)> functions = functionMultiplier(addNewOrEdit, stageOfWords.size());
 	wstring selectText = L"Select a stage";
 	wstring exitText = L"Back";
-	wconsoleMenu editWordsMenu(stageOfWords, functions, L"Select a language of words you want to see", L"Back");
+	wconsoleMenu editWordsMenu(stageOfWords, functions, selectText, exitText);
 
 	currentLanguage = language;
-	editWordsMenu.singleSelect();
+	editWordsMenu.cyclicSelect();
 	currentLanguage.clear();
 }
 
@@ -536,5 +556,5 @@ void wordsLanguageToManage(wstring&)
 	wstring exitText = L"Back";
 	wconsoleMenu languageOfWord(languages, functions, selectText, exitText);
 
-	languageOfWord.singleSelect();
+	languageOfWord.cyclicSelect();
 }

@@ -29,7 +29,7 @@ void workOnMistakes(wstring&)
 
 		getline(wcin, answer);
 		if (answer.empty()) { break; }
-		wstringToLower(answer);
+		wordToLowerCase(answer);
 
 		getVectorFromWfile(ProgramDirectories::getPathToFile(word, currentLanguage, currentStage), translations, true);
 		if (sucsessFeedback(answer, translations))
@@ -105,7 +105,7 @@ void openAnswerTest(wstring&)
 
 			getline(wcin, answer);
 			if (answer.empty()) { break; }
-			wstringToLower(answer);
+			wordToLowerCase(answer);
 
 			amountOfRepeats++;
 			getVectorFromWfile(ProgramDirectories::getPathToFile(word, currentLanguage, currentStage), translations, true);
@@ -177,7 +177,7 @@ void openAnswerTest(wstring&)
 				_wsystem(L"cls");
 				break;
 			}
-			wstringToLower(answer);
+			wordToLowerCase(answer);
 
 			getVectorFromWfile(ProgramDirectories::getPathToFile(word, currentLanguage, currentStage), translations, true);
 			if (!sucsessFeedback(answer, translations))
@@ -223,7 +223,7 @@ void wordsStageToTest(wstring& language)
 	wconsoleMenu testingTypeMenu(stageOfWords, functions, selectText, exitText);
 
 	currentLanguage = language;
-	testingTypeMenu.singleSelect();
+	testingTypeMenu.cyclicSelect();
 	currentLanguage.clear();
 }
 
@@ -235,5 +235,5 @@ void wordsLanguageToTest(wstring&)
 	wstring exitText = L"Back";
 	wconsoleMenu testingTypeMenu(languages, functions, selectText, exitText);
 
-	testingTypeMenu.singleSelect();
+	testingTypeMenu.cyclicSelect();
 }

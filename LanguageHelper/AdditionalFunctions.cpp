@@ -9,10 +9,19 @@ bool isPathExist(wstring path)
 		return false;
 }
 
-void wstringToLower(wstring& s)
+
+void wordToLowerCase(wstring& word)
 {
-	for (int i = 0; i < s.length(); i++)
-		s[i] = tolower(s[i], locale(""));
+	for (int i = 0; i < word.length(); i++)
+	{
+		word[i] = tolower(word[i], locale(""));
+	}
+}
+
+void capitalizedWord(wstring& word)
+{
+	wordToLowerCase(word);
+	word[0] = toupper(word[0], locale(""));
 }
 
 void removeTextInBracket(wstring& string)
@@ -122,6 +131,25 @@ void saveVectorToWfile(wstring filePath, vector<wstring>& sourseVector)
 	}
 
 	targetFile.close();
+}
+
+void removeWordFromWfile(wstring filePath, wstring word)
+{
+	vector<wstring> lines;
+
+	getVectorFromWfile(filePath, lines);
+	for (int i = 0; i < lines.size(); i++)
+	{
+		wstring rawLine = wstring(lines[i]);
+		size_t separatorPosition = rawLine.find(L'>');
+
+		if (separatorPosition != string::npos) { rawLine.substr(0, separatorPosition); }
+		if (rawLine == word) {
+			lines.erase(lines.begin() + i);
+			saveVectorToWfile(filePath, lines);
+			break;
+		}
+	}
 }
 
 void getMapFromWfile(wstring filePath, map<wstring, int>& emptyMap)

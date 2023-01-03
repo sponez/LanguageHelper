@@ -67,7 +67,7 @@ void wordsStageToView(wstring& language)
 	wconsoleMenu testingTypeMenu(stageOfWords, functions, selectText, exitText);
 
 	currentLanguage = language;
-	testingTypeMenu.singleSelect();
+	testingTypeMenu.cyclicSelect();
 	currentLanguage.clear();
 }
 
@@ -79,5 +79,5 @@ void wordsLanguageToView(wstring&)
 	wstring exitText = L"Back";
 	wconsoleMenu testingTypeMenu(languages, functions, selectText, exitText);
 
-	testingTypeMenu.singleSelect();
+	testingTypeMenu.cyclicSelect();
 }

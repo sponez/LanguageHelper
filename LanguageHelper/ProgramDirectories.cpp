@@ -53,22 +53,12 @@ void ProgramDirectories::languageInitialization()
 	wcout << L"Global initializing." << endl;
 	wcout << L"Please, enter the native language: ";
 	wcin >> languages.native;
+	capitalizedWord(languages.native);
 
 	wcout << L"Please, enter the target language: ";
 	wcin >> languages.target;
 	wcin.ignore(LLONG_MAX, L'\n');
-
-	for (int i = 0; i < languages.native.length(); i++)
-	{
-		languages.native[i] = tolower(languages.native[i], locale(""));
-	}
-	languages.native[0] = toupper(languages.native[0], locale(""));
-	
-	for (int i = 0; i < languages.target.length(); i++)
-	{
-		languages.target[i] = tolower(languages.target[i], locale(""));
-	}
-	languages.target[0] = toupper(languages.target[0], locale(""));
+	capitalizedWord(languages.target);
 
 	wofstream configFile(getPathToFile(programFiles.languagesConfig));
 	configFile << languages.native << endl << languages.target;
@@ -168,6 +158,33 @@ wstring ProgramDirectories::getPathToFile(wstring file, wstring language, wstrin
 			return getPathToDirectory(language, stage) + L"\\" + file;
 		}
 	}
+}
+
+void ProgramDirectories::removeWordFromProgramFiles(wstring word, wstring language)
+{
+	removeWordFromWfile(
+		ProgramDirectories::getPathToFile(
+			ProgramDirectories::programFiles.successSave,
+			language
+		),
+		word
+	);
+
+	removeWordFromWfile(
+		ProgramDirectories::getPathToFile(
+			ProgramDirectories::programFiles.unpassedWords,
+			language
+		),
+		word
+	);
+
+	removeWordFromWfile(
+		ProgramDirectories::getPathToFile(
+			ProgramDirectories::programFiles.usedWords,
+			language
+		),
+		word
+	);
 }
 
 wstring ProgramDirectories::reverseLanguage(wstring language)

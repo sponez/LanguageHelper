@@ -16,7 +16,8 @@ using namespace std;
 mt19937 radnomNumber((unsigned int)time(0));
 
 bool isPathExist(wstring path);
-void wstringToLower(wstring& s);
+void wordToLowerCase(wstring& word);
+void capitalizedWord(wstring& word);
 void removeTextInBracket(wstring& string);
 void getWords(wstring path, vector<wstring>& emptyList);
 void vectorDifference(vector<wstring>& first, vector<wstring>& second, vector<wstring>& result);
@@ -25,6 +26,7 @@ vector<void (*)(wstring&)> functionMultiplier(void (*function)(wstring&), short 
 void shuffleVector(vector<wstring>& vector);
 void getVectorFromWfile(wstring filePath, vector<wstring>& emptyVector, bool removeBracket = false);
 void saveVectorToWfile(wstring filePath, vector<wstring>& sourseVector);
+void removeWordFromWfile(wstring filePath, wstring line);
 void getMapFromWfile(wstring filePath, map<wstring, int>& emptyMap);
 void saveMapToWfile(wstring filePath, map<wstring, int>& sourseMap);
 void printVector(vector<wstring> vector, wstring separator = L"\n", bool newLineAfter = true);
