@@ -20,24 +20,41 @@ void workOnMistakes(wstring&)
 	getMapFromWfile(ProgramDirectories::getPathToFile(ProgramDirectories::programFiles.successSave, currentLanguage), overallCorrectAnswers);
 
 	int currentWordIndex = 0;
-	while (true)
+	while (!unpassedWords.empty())
 	{
 		wstring word = unpassedWords[currentWordIndex];
+		if (word.empty())
+		{
+			unpassedWords.erase(unpassedWords.begin() + currentWordIndex);
+			overallCorrectAnswers.erase(word);
+			continue;
+		}
+
 		vector<wstring> translations;
-		wstring answer;
+		getVectorFromWfile(ProgramDirectories::getPathToFile(word, currentLanguage, currentStage), translations, true);
+		if (translations.empty())
+		{
+			wcout << L"Word \"" << word << L"\" doesn't exist already" << endl;
+			_wsystem(L"pause");
+
+			unpassedWords.erase(unpassedWords.begin() + currentWordIndex);
+			overallCorrectAnswers.erase(word);
+			continue;
+		}
 
 		wcout << L"Leave empty to exit." << endl;
 		wcout << word << L" is: ";
 
+		wstring answer;
 		getline(wcin, answer);
 		if (answer.empty()) { break; }
 		wordToLowerCase(answer);
 
-		getVectorFromWfile(ProgramDirectories::getPathToFile(word, currentLanguage, currentStage), translations, true);
 		if (sucsessFeedback(answer, translations))
 		{
 			unpassedWords.erase(unpassedWords.begin() + currentWordIndex);
 			overallCorrectAnswers.erase(word);
+
 			if (unpassedWords.empty())
 			{
 				_wsystem(L"cls");
@@ -94,8 +111,6 @@ void openAnswerTest(wstring&)
 		while (true)
 		{
 			wstring word = randomWstring(unusedWords);
-			vector<wstring>::iterator wordIt = find(unusedWords.begin(), unusedWords.end(), word);
-
 			if (word.empty())
 			{
 				wcout << L"Words are run out!" << endl;
@@ -104,15 +119,26 @@ void openAnswerTest(wstring&)
 				break;
 			}
 
-			usedWords.push_back(word);
-			unusedWords.erase(wordIt);
-			if (usedWords.size() > unusedWords.size())
+			transmitElement(word, unusedWords, usedWords);
+			if (!usedWords.empty() && usedWords.size() >= unusedWords.size())
 			{
 				unusedWords.push_back(usedWords.front());
 				usedWords.erase(usedWords.begin());
 			}
 
 			vector<wstring> translations;
+			getVectorFromWfile(ProgramDirectories::getPathToFile(word, currentLanguage, currentStage), translations, true);
+			if (translations.empty())
+			{
+				wcout << L"Word doesn't exist already" << endl;
+				_wsystem(L"pause");
+
+				removeElement(word, usedWords);
+				removeElement(word, unusedWords);
+				overallCorrectAnswers.erase(word);
+				continue;
+			}
+
 			wstring answer;
 
 			wcout << L"Leave empty to exit." << endl;
@@ -123,7 +149,6 @@ void openAnswerTest(wstring&)
 			wordToLowerCase(answer);
 
 			amountOfRepeats++;
-			getVectorFromWfile(ProgramDirectories::getPathToFile(word, currentLanguage, currentStage), translations, true);
 			if (sucsessFeedback(answer, translations))
 			{
 				correctAnswers++;
@@ -133,12 +158,11 @@ void openAnswerTest(wstring&)
 
 			if (overallCorrectAnswers[word] >= AMOUNT_OF_CORRECT_ANSWERS_TO_DELETE)
 			{
-				vector<wstring>::iterator wordIt = find(usedWords.begin(), usedWords.end(), word);
-
 				MoveFileW(ProgramDirectories::getPathToFile(word, currentLanguage, ProgramDirectories::stages.unlearned).c_str(),
 					ProgramDirectories::getPathToFile(word, currentLanguage, ProgramDirectories::stages.learned).c_str());
 
-				usedWords.erase(wordIt);
+				removeElement(word, usedWords);
+				removeElement(word, unusedWords);
 				overallCorrectAnswers.erase(word);
 			}
 
@@ -176,20 +200,28 @@ void openAnswerTest(wstring&)
 		while (true)
 		{
 			wstring word = randomWstring(allWords);
-			vector<wstring> translations;
-			wstring answer;
-
 			if (word.empty())
 			{
-				wcout << L"Words are run out!" << endl;
+				wcout << L"You have forgot all words!" << endl;
 				_wsystem(L"pause");
 				_wsystem(L"cls");
 				break;
 			}
 
+			vector<wstring> translations;
+			if (translations.empty())
+			{
+				wcout << L"Word \"" << word << L"\" doesn't exist already" << endl;
+				_wsystem(L"pause");
+
+				removeElement(word, allWords);
+				continue;
+			}
+
 			wcout << L"Leave empty to exit." << endl;
 			wcout << word << L" is: ";
 
+			wstring answer;
 			getline(wcin, answer);
 			if (answer.empty())
 			{
@@ -201,12 +233,10 @@ void openAnswerTest(wstring&)
 			getVectorFromWfile(ProgramDirectories::getPathToFile(word, currentLanguage, currentStage), translations, true);
 			if (!sucsessFeedback(answer, translations))
 			{
-				vector<wstring>::iterator wordIt = find(allWords.begin(), allWords.end(), word);
-
 				MoveFileW(ProgramDirectories::getPathToFile(word, currentLanguage, ProgramDirectories::stages.learned).c_str(),
 					ProgramDirectories::getPathToFile(word, currentLanguage, ProgramDirectories::stages.unlearned).c_str());
 
-				allWords.erase(wordIt);
+				removeElement(word, allWords);
 			}
 
 			_wsystem(L"cls");

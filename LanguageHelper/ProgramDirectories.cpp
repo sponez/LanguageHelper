@@ -75,6 +75,61 @@ void ProgramDirectories::createDirrectory(wstring path)
 	}
 }
 
+void ProgramDirectories::checkProgressFiles()
+{
+	for (wstring checkLanguage : { languages.native , languages.target })
+	{
+		vector<wstring> words;
+		map<wstring, int> successSaveMap;
+		vector<wstring> unpassedWordsArray;
+		vector<wstring> usedWordsArray;
+
+		getWords(getPathToDirectory(checkLanguage, stages.unlearned), words);
+
+		getMapFromWfile(getPathToFile(programFiles.successSave, checkLanguage), successSaveMap);
+		for (map<wstring, int>::iterator mapIt = successSaveMap.begin(); mapIt != successSaveMap.end(); mapIt++)
+		{
+			if (find(words.begin(), words.end(), mapIt->first) == words.end())
+			{
+				wcout << L"Progress files have broken. Progress lost." << endl;
+				_wsystem(L"pause");
+
+				_wremove(getPathToFile(programFiles.successSave, checkLanguage).c_str());
+				_wremove(getPathToFile(programFiles.unpassedWords, checkLanguage).c_str());
+				_wremove(getPathToFile(programFiles.usedWords, checkLanguage).c_str());
+			}
+		}
+
+		getVectorFromWfile(getPathToFile(programFiles.unpassedWords, checkLanguage), unpassedWordsArray);
+		for (vector<wstring>::iterator vecIt = unpassedWordsArray.begin(); vecIt != unpassedWordsArray.end(); vecIt++)
+		{
+			if (find(words.begin(), words.end(), *vecIt) == words.end())
+			{
+				wcout << L"Progress files have broken. Progress lost." << endl;
+				_wsystem(L"pause");
+
+				_wremove(getPathToFile(programFiles.successSave, checkLanguage).c_str());
+				_wremove(getPathToFile(programFiles.unpassedWords, checkLanguage).c_str());
+				_wremove(getPathToFile(programFiles.usedWords, checkLanguage).c_str());
+			}
+		}
+
+		getVectorFromWfile(getPathToFile(programFiles.usedWords, checkLanguage), usedWordsArray);
+		for (vector<wstring>::iterator vecIt = usedWordsArray.begin(); vecIt != usedWordsArray.end(); vecIt++)
+		{
+			if (find(words.begin(), words.end(), *vecIt) == words.end())
+			{
+				wcout << L"Progress files have broken. Progress lost." << endl;
+				_wsystem(L"pause");
+
+				_wremove(getPathToFile(programFiles.successSave, checkLanguage).c_str());
+				_wremove(getPathToFile(programFiles.unpassedWords, checkLanguage).c_str());
+				_wremove(getPathToFile(programFiles.usedWords, checkLanguage).c_str());
+			}
+		}
+	}
+}
+
 wstring ProgramDirectories::getPathToDirectory(wstring language, wstring stage)
 {
 	wstring path;
@@ -228,4 +283,5 @@ void ProgramDirectories::getProgramDirectories()
 	createDirrectory(getPathToDirectory(languages.target, stages.learned));
 
 	getProgressFiles();
+	checkProgressFiles();
 }

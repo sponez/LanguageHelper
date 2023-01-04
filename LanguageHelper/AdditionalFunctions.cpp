@@ -276,3 +276,30 @@ bool askQuestion(wstring question)
 
 	return (result == 0);
 }
+
+bool transmitElement(wstring element, vector<wstring>& sourseVector, vector<wstring>& targetvector)
+{
+	vector<wstring>::iterator elementIt = find(sourseVector.begin(), sourseVector.end(), element);
+
+	if (elementIt != sourseVector.end())
+	{
+		sourseVector.erase(elementIt);
+		targetvector.push_back(element);
+		return true;
+	}
+
+	return false;
+}
+
+bool removeElement(wstring element, vector<wstring>& sourseVector)
+{
+	vector<wstring>::iterator elementIt = find(sourseVector.begin(), sourseVector.end(), element);
+
+	if (elementIt != sourseVector.end())
+	{
+		sourseVector.erase(elementIt);
+		return true;
+	}
+
+	return false;
+}

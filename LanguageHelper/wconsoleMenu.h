@@ -53,6 +53,13 @@ void wconsoleMenu::consoleWstringEditor(wstring& s, wstring editorText = L"Edit:
 	HANDLE consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
 	COORD cursorPosition;
 	wstring backup = s;
+	const size_t MAX_LENGTH = 1024;
+	const wchar_t ESC = 27;
+	const wchar_t ENTER = 13;
+	const char PREARROW = -32;
+	const wchar_t ARROW_LEFT = 75;
+	const wchar_t ARROW_RIGHT = 77;
+	const wchar_t BACKSPACE = 8;
 
 	_wsystem(L"cls");
 	cursorPosition.Y = 0;
@@ -65,22 +72,22 @@ void wconsoleMenu::consoleWstringEditor(wstring& s, wstring editorText = L"Edit:
 
 		if (wch = _getwch())
 		{
-			if (wch == 27)
+			if (wch == ESC)
 			{
 				s = backup;
 				_wsystem(L"cls");
 				break;
 			}
-			else if (wch == 13)
+			else if (wch == ENTER)
 			{
 				_wsystem(L"cls");
 				break;
 			}
-			else if ((char)wch == -32)
+			else if ((char)wch == PREARROW)
 			{
 				wch = _getwch();
 
-				if (wch == 75)
+				if (wch == ARROW_LEFT)
 				{
 					if (cursorPosition.X > editorText.length())
 					{
@@ -89,7 +96,7 @@ void wconsoleMenu::consoleWstringEditor(wstring& s, wstring editorText = L"Edit:
 					}
 				}
 
-				if (wch == 77)
+				if (wch == ARROW_RIGHT)
 				{
 					if (cursorPosition.X < (editorText.length() + s.length()))
 					{
@@ -100,7 +107,7 @@ void wconsoleMenu::consoleWstringEditor(wstring& s, wstring editorText = L"Edit:
 			}
 			else
 			{
-				if (wch == 8)
+				if (wch == BACKSPACE)
 				{
 					if (s.length() > 0 && cursorPosition.X > editorText.length())
 					{
@@ -111,9 +118,12 @@ void wconsoleMenu::consoleWstringEditor(wstring& s, wstring editorText = L"Edit:
 				}
 				else
 				{
-					short posToInsert = cursorPosition.X - editorText.length();
-					s.insert(posToInsert, 1, wch);
-					cursorPosition.X++;
+					if (s.length() < MAX_LENGTH)
+					{
+						short posToInsert = cursorPosition.X - editorText.length();
+						s.insert(posToInsert, 1, wch);
+						cursorPosition.X++;
+					}
 				}
 
 				_wsystem(L"cls");
@@ -371,18 +381,18 @@ bool wconsoleMenu::selectController(vector<pair<wstring, void (*)(wstring&)>>& o
 		if (GetAsyncKeyState(VK_MENU) && GetAsyncKeyState(VK_TAB))
 			ShowWindow(consoleWindow, SW_MINIMIZE);
 
-		for (int i = 0; GetAsyncKeyState(VK_UP); Sleep(200 - 10 * i))
+		for (int i = 0; GetAsyncKeyState(VK_UP); Sleep(220 - 40 * i))
 		{
 			currentPosition = static_cast<short>((options.size() + currentPosition - 1) % options.size());
 			redrawMenu(options, currentPosition, -1);
-			if (i < 19) i++;
+			if (i < 5) i++;
 		}
 
-		for (int i = 0; GetAsyncKeyState(VK_DOWN); Sleep(200 - 10 * i))
+		for (int i = 0; GetAsyncKeyState(VK_DOWN); Sleep(220 - 40 * i))
 		{
 			currentPosition = (currentPosition + 1) % options.size();
 			redrawMenu(options, currentPosition, 1);
-			if (i < 19) i++;
+			if (i < 5) i++;
 		}
 
 		if (GetAsyncKeyState(VK_RETURN))

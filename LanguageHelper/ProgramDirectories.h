@@ -35,6 +35,7 @@ private:
 	static void getProgressFiles();
 	static void languageInitialization();
 	static void createDirrectory(wstring path);
+	static void checkProgressFiles();
 
 public:
 	inline static wstring globalPath;
