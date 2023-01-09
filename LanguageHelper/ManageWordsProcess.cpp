@@ -36,12 +36,12 @@ void convertWordsFromAnotherLanguage(wstring language)
 void getRandomWordsFromLearned(wstring&)
 {
 	int amount;
-	vector<wstring> allLearnedWords;
+	vector<wstring> wordsToMove;
 
-	getWords(ProgramDirectories::getPathToDirectory(currentLanguage, ProgramDirectories::stages.learned), allLearnedWords);
-	if (allLearnedWords.size() > 0)
+	getWords(ProgramDirectories::getPathToDirectory(currentLanguage, ProgramDirectories::stages.learned), wordsToMove);
+	if (wordsToMove.size() > 0)
 	{
-		wcout << L"Enter an amount of words from 1 to " << allLearnedWords.size() << L": ";
+		wcout << L"Enter an amount of words from 1 to " << wordsToMove.size() << L": ";
 		if (wcin >> amount)
 		{
 			wcin.ignore(LLONG_MAX, '\n');
@@ -54,27 +54,48 @@ void getRandomWordsFromLearned(wstring&)
 				return;
 			}
 
-			if (amount > allLearnedWords.size())
+			if (amount > wordsToMove.size())
 			{
 				_wsystem(L"cls");
 				wcout << L"Too much. All words will be moved." << endl;
 				_wsystem(L"pause");
 
-				amount = allLearnedWords.size();
+				amount = wordsToMove.size();
 			}
 
-			for (int i = 0; i < amount; i++)
+			if (amount <= (wordsToMove.size() + 1) / 2)
 			{
-				wstring wordToMove = randomWstring(allLearnedWords);
-
-				if (!MoveFileW(ProgramDirectories::getPathToFile(wordToMove, currentLanguage, ProgramDirectories::stages.learned).c_str(),
-					ProgramDirectories::getPathToFile(wordToMove, currentLanguage, ProgramDirectories::stages.unlearned).c_str()))
+				for (int i = 0; i < amount; i++)
 				{
-					wcout << L"The word \"" << wordToMove << L"\" didn't moved" << endl;
-					_wsystem(L"pause");
+					wstring wordToMove = randomWstring(wordsToMove);
+
+					if (!MoveFileW(ProgramDirectories::getPathToFile(wordToMove, currentLanguage, ProgramDirectories::stages.learned).c_str(),
+						ProgramDirectories::getPathToFile(wordToMove, currentLanguage, ProgramDirectories::stages.unlearned).c_str()))
+					{
+						wcout << L"The word \"" << wordToMove << L"\" didn't moved" << endl;
+						_wsystem(L"pause");
+					}
+
+					removeElement(wordToMove, wordsToMove);
+				}
+			}
+			else
+			{
+				for (int i = 0; i < wordsToMove.size() - amount; i++)
+				{
+					wstring remainingWord = randomWstring(wordsToMove);
+					removeElement(remainingWord, wordsToMove);
 				}
 
-				removeElement(wordToMove, allLearnedWords);
+				for (wstring wordToMove: wordsToMove)
+				{
+					if (!MoveFileW(ProgramDirectories::getPathToFile(wordToMove, currentLanguage, ProgramDirectories::stages.learned).c_str(),
+						ProgramDirectories::getPathToFile(wordToMove, currentLanguage, ProgramDirectories::stages.unlearned).c_str()))
+					{
+						wcout << L"The word \"" << wordToMove << L"\" didn't moved" << endl;
+						_wsystem(L"pause");
+					}
+				}
 			}
 
 			_wsystem(L"cls");
@@ -353,10 +374,22 @@ void translationEditorFunction(wstring& optionName)
 
 void translatorEditor(wstring& translation)
 {
-	vector<wstring> editorOptions = { L"Edit" , L"Delete" };
-	vector<void (*)(wstring&)> functions = functionMultiplier(translationEditorFunction, editorOptions.size());
+	vector<wstring> editorOptions;
+	vector<void (*)(wstring&)> functions;
 	wstring selectText = L"Select an action";
 	wstring exitText = L"Back";
+
+	if (currentStage == ProgramDirectories::stages.unlearned)
+	{
+		editorOptions = { L"Edit" , L"Delete" };
+		functions = functionMultiplier(translationEditorFunction, editorOptions.size());
+	}
+	else
+	{
+		editorOptions = { L"Delete" };
+		functions = { translationEditorFunction };
+	}
+
 	wconsoleMenu languageOfWord(editorOptions, functions, selectText, exitText);
 
 	currentTranslationPointer = &translation;
@@ -507,8 +540,8 @@ void wordEditor(wstring& word)
 	}
 	else
 	{
-		editorOptions = { L"View translations" , L"Add translations" , L"Move to unlearned", L"Delete" };
-		functions = { displayTranslations , addTranslationFunction , moveToUnlearned , deleteWordFunction };
+		editorOptions = { L"View translations" , L"Move to unlearned", L"Delete" };
+		functions = { displayTranslations , moveToUnlearned , deleteWordFunction };
 		editor = wconsoleMenu(editorOptions, functions, selectText, exitText);
 
 		do
