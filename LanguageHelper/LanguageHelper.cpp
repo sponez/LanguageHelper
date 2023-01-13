@@ -3,6 +3,7 @@
 #include "TestProcess.h"
 #include "ManageWordsProcess.h"
 #include "ViewProcess.h"
+#include "Properties.h"
 using namespace std;
 
 int main(int argc, char* argv[])
@@ -11,8 +12,8 @@ int main(int argc, char* argv[])
 
 	if (argc == 1)
 	{
-		vector<wstring> options = { L"View saved words" , L"Testing" , L"Manage words" };
-		vector<void (*)(wstring&)> functions = { wordsLanguageToView, wordsLanguageToTest , wordsLanguageToManage };
+		vector<wstring> options = { L"View saved words" , L"Testing" , L"Manage words" , L"Properties" };
+		vector<void (*)(wstring&)> functions = { wordsLanguageToView, wordsLanguageToTest , wordsLanguageToManage , propertiesMenu };
 		wstring selectText = L"Select an action";
 		wstring exitText = L"Close application";
 		wconsoleMenu languageHelperMenu(options, functions, selectText, exitText);

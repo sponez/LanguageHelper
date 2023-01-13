@@ -152,6 +152,7 @@
     <ClCompile Include="LanguageHelper.cpp" />
     <ClCompile Include="ManageWordsProcess.cpp" />
     <ClCompile Include="ProgramDirectories.cpp" />
+    <ClCompile Include="Properties.cpp" />
     <ClCompile Include="ViewProcess.cpp" />
     <ClCompile Include="TestProcess.cpp" />
   </ItemGroup>
@@ -160,6 +161,7 @@
     <ClInclude Include="consoleParameters.h" />
     <ClInclude Include="ProgramDirectories.h" />
     <ClInclude Include="ManageWordsProcess.h" />
+    <ClInclude Include="Properties.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="TestProcess.h" />
     <ClInclude Include="ViewProcess.h" />

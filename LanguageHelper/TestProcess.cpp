@@ -2,7 +2,6 @@
 
 wstring currentLanguage;
 wstring currentStage;
-const short AMOUNT_OF_CORRECT_ANSWERS_TO_DELETE = 3;
 
 void workOnMistakes(wstring&)
 {
@@ -156,7 +155,7 @@ void openAnswerTest(wstring&)
 			}
 			else { overallCorrectAnswers[word] = 0; }
 
-			if (overallCorrectAnswers[word] >= AMOUNT_OF_CORRECT_ANSWERS_TO_DELETE)
+			if (overallCorrectAnswers[word] >= ProgramDirectories::programProperties.correctAnswersToDelete)
 			{
 				MoveFileW(ProgramDirectories::getPathToFile(word, currentLanguage, ProgramDirectories::stages.unlearned).c_str(),
 					ProgramDirectories::getPathToFile(word, currentLanguage, ProgramDirectories::stages.learned).c_str());

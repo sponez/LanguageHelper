@@ -9,7 +9,6 @@ bool isPathExist(wstring path)
 		return false;
 }
 
-
 void wordToLowerCase(wstring& word)
 {
 	for (int i = 0; i < word.length(); i++)

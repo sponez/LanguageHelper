@@ -48,6 +48,61 @@ void ProgramDirectories::getProgressFiles()
 	programFiles.unpassedWords = L"UnpassedWords.save";
 }
 
+void ProgramDirectories::getPropertiesFile()
+{
+	programFiles.properties = L"properties.cfg";
+}
+
+void ProgramDirectories::saveDefaulProperties()
+{
+	programProperties.correctAnswersToDelete = SHRT_MAX;
+	saveProperties();
+}
+
+void ProgramDirectories::getProperties()
+{
+	wifstream propertiesFile(getPathToFile(programFiles.properties));
+	propertiesFile.imbue(std::locale(propertiesFile.getloc(), new codecvt_utf8<wchar_t, 0x10ffff, consume_header>()));
+
+	if (propertiesFile.is_open())
+	{
+		wstring correctAnswersToDeleteName = L"correctAnswersToDelete";
+
+		wstring propertyName;
+
+		do
+		{
+			propertiesFile >> propertyName;
+		} while (propertyName != correctAnswersToDeleteName);
+
+		if (!(propertiesFile >> programProperties.correctAnswersToDelete))
+		{
+			propertiesFile.close();
+			saveDefaulProperties();
+			return;
+		}
+
+		propertiesFile.close();
+	}
+	else
+	{
+		saveDefaulProperties();
+		return;
+	}
+}
+
+void ProgramDirectories::saveProperties()
+{
+	wstring correctAnswersToDeleteName = L"correctAnswersToDelete";
+
+	wofstream propertiesFile(getPathToFile(programFiles.properties));
+	propertiesFile.imbue(std::locale(propertiesFile.getloc(), new codecvt_utf8<wchar_t, 0x10ffff, consume_header>()));
+
+	propertiesFile << correctAnswersToDeleteName << L' ' << programProperties.correctAnswersToDelete;
+
+	propertiesFile.close();
+}
+
 void ProgramDirectories::languageInitialization()
 {
 	wcout << L"Global initializing." << endl;
@@ -61,6 +116,7 @@ void ProgramDirectories::languageInitialization()
 	capitalizedWord(languages.target);
 
 	wofstream configFile(getPathToFile(programFiles.languagesConfig));
+	configFile.imbue(std::locale(configFile.getloc(), new codecvt_utf8<wchar_t, 0x10ffff, consume_header>()));
 	configFile << languages.native << endl << languages.target;
 	configFile.close();
 }
@@ -172,7 +228,7 @@ wstring ProgramDirectories::getPathToDirectory(wstring language, wstring stage)
 
 wstring ProgramDirectories::getPathToFile(wstring file, wstring language, wstring stage)
 {
-	if (file == programFiles.languagesConfig)
+	if (file == programFiles.languagesConfig || file == programFiles.properties)
 	{
 		if (!language.empty())
 		{
@@ -284,4 +340,7 @@ void ProgramDirectories::getProgramDirectories()
 
 	getProgressFiles();
 	checkProgressFiles();
+
+	getPropertiesFile();
+	getProperties();
 }

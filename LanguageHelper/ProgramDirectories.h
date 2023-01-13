@@ -25,6 +25,12 @@ private:
 		wstring successSave;
 		wstring usedWords;
 		wstring unpassedWords;
+		wstring properties;
+	};
+
+	struct ProgramProperties
+	{
+		short correctAnswersToDelete;
 	};
 
 	static wstring getUsername();
@@ -33,6 +39,9 @@ private:
 	static void getLanguages();
 	static void getStages();
 	static void getProgressFiles();
+	static void getPropertiesFile();
+	static void getProperties();
+	static void saveDefaulProperties();
 	static void languageInitialization();
 	static void createDirrectory(wstring path);
 	static void checkProgressFiles();
@@ -42,6 +51,7 @@ public:
 	inline static Languages languages;
 	inline static Stages stages;
 	inline static ProgramFiles programFiles;
+	inline static ProgramProperties programProperties;
 
 	static wstring getPathToDirectory(wstring language = wstring(), wstring stage = wstring());
 	static wstring getPathToFile(wstring file, wstring language = wstring(), wstring stage = wstring());
@@ -49,4 +59,5 @@ public:
 	static wstring reverseLanguage(wstring language);
 	static wstring reverseStage(wstring stage);
 	static void getProgramDirectories();
+	static void saveProperties();
 };
