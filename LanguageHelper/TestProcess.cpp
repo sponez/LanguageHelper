@@ -41,31 +41,53 @@ void workOnMistakes(wstring&)
 			continue;
 		}
 
+		double msToAnswer = INT_MAX;
+		if (ProgramDirectories::programProperties.millisecondsToAnswerForCharacter.value != INT_MAX)
+		{
+			unsigned long long maxLen = 0;
+
+			for (wstring translation : translations)
+			{
+				maxLen = max(maxLen, translation.length());
+			}
+
+			msToAnswer = maxLen * ProgramDirectories::programProperties.millisecondsToAnswerForCharacter.value;
+		}
+
 		wcout << L"Leave empty to exit." << endl;
 		wcout << word << L" is: ";
 
 		wstring answer;
-		getline(wcin, answer);
-		if (answer.empty()) { break; }
-		wordToLowerCase(answer);
-
-		if (sucsessFeedback(answer, translations))
+		if (wconsoleMenu::consoleWstringEditor(answer, msToAnswer))
 		{
-			unpassedWords.erase(unpassedWords.begin() + currentWordIndex);
-			overallCorrectAnswers.erase(word);
+			if (answer.empty()) { break; }
+			wordToLowerCase(answer);
 
-			if (unpassedWords.empty())
+			if (sucsessFeedback(answer, translations))
 			{
-				_wsystem(L"cls");
-				wcout << L"All mistakes have fixed!" << endl;
-				_wsystem(L"pause");
-				break;
+				unpassedWords.erase(unpassedWords.begin() + currentWordIndex);
+				overallCorrectAnswers.erase(word);
+
+				if (unpassedWords.empty())
+				{
+					_wsystem(L"cls");
+					wcout << L"All mistakes have fixed!" << endl;
+					_wsystem(L"pause");
+					break;
+				}
 			}
+			else { currentWordIndex++; }
 		}
-		else { currentWordIndex++; }
+		else
+		{
+			_wsystem(L"cls");
+			wcout << L"You are run of time!" << endl;
+			_wsystem(L"pause");
+
+			currentWordIndex++;
+		}
 
 		if (currentWordIndex >= unpassedWords.size()) { currentWordIndex = 0; }
-
 		_wsystem(L"cls");
 	}
 
@@ -138,24 +160,46 @@ void openAnswerTest(wstring&)
 				continue;
 			}
 
-			wstring answer;
+			double msToAnswer = INT_MAX;
+			if (ProgramDirectories::programProperties.millisecondsToAnswerForCharacter.value != INT_MAX)
+			{
+				unsigned long long maxLen = 0;
+
+				for (wstring translation : translations)
+				{
+					maxLen = max(maxLen, translation.length());
+				}
+
+				msToAnswer = maxLen * ProgramDirectories::programProperties.millisecondsToAnswerForCharacter.value;
+			}
 
 			wcout << L"Leave empty to exit." << endl;
 			wcout << word << L" is: ";
 
-			getline(wcin, answer);
-			if (answer.empty()) { break; }
-			wordToLowerCase(answer);
-
-			amountOfRepeats++;
-			if (sucsessFeedback(answer, translations))
+			wstring answer;
+			if (wconsoleMenu::consoleWstringEditor(answer, msToAnswer))
 			{
-				correctAnswers++;
-				overallCorrectAnswers[word]++;
-			}
-			else { overallCorrectAnswers[word] = 0; }
+				if (answer.empty()) { break; }
+				wordToLowerCase(answer);
 
-			if (overallCorrectAnswers[word] >= ProgramDirectories::programProperties.correctAnswersToDelete)
+				amountOfRepeats++;
+				if (sucsessFeedback(answer, translations))
+				{
+					correctAnswers++;
+					overallCorrectAnswers[word]++;
+				}
+				else { overallCorrectAnswers[word] = 0; }
+			}
+			else
+			{
+				_wsystem(L"cls");
+				wcout << L"You are run of time!" << endl;
+				_wsystem(L"pause");
+
+				overallCorrectAnswers[word] = 0;
+			}
+
+			if (overallCorrectAnswers[word] >= ProgramDirectories::programProperties.correctAnswersToDelete.value)
 			{
 				MoveFileW(ProgramDirectories::getPathToFile(word, currentLanguage, ProgramDirectories::stages.unlearned).c_str(),
 					ProgramDirectories::getPathToFile(word, currentLanguage, ProgramDirectories::stages.learned).c_str());

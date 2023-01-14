@@ -6,6 +6,13 @@ using namespace std;
 
 class ProgramDirectories
 {
+public:
+	struct Property
+	{
+		wstring name;
+		int value;
+	};
+
 private:
 	struct Languages
 	{
@@ -30,7 +37,13 @@ private:
 
 	struct ProgramProperties
 	{
-		short correctAnswersToDelete;
+		Property correctAnswersToDelete;
+		Property millisecondsToAnswerForCharacter;
+
+		vector<Property*> getPropertiesList()
+		{
+			return { &correctAnswersToDelete , &millisecondsToAnswerForCharacter };
+		}
 	};
 
 	static wstring getUsername();

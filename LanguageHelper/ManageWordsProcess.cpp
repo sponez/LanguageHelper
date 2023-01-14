@@ -297,7 +297,11 @@ void translationEditorFunction(wstring& optionName)
 			bool didWordExistInTranslation = false;
 
 			vector<wstring>::iterator currentTranslateIt = find(translations.begin(), translations.end(), *currentTranslationPointer);
+
+			_wsystem(L"cls");
+			wcout << L"Edit: ";
 			wconsoleMenu::consoleWstringEditor(*currentTranslationPointer);
+
 			if (*currentTranslationPointer == oldTranslation) { return; }
 			if (currentTranslationPointer->empty())
 			{
@@ -447,7 +451,10 @@ void ranameWordFunction(wstring&)
 	vector<wstring> translations;
 	getVectorFromWfile(oldWordPath, translations);
 
+	_wsystem(L"cls");
+	wcout << L"Edit: ";
 	wconsoleMenu::consoleWstringEditor(*currentWordPointer);
+
 	if (*currentWordPointer == oldWord) { return; }
 	if (currentWordPointer->empty())
 	{

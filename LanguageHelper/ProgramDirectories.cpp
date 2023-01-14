@@ -55,31 +55,38 @@ void ProgramDirectories::getPropertiesFile()
 
 void ProgramDirectories::saveDefaulProperties()
 {
-	programProperties.correctAnswersToDelete = SHRT_MAX;
+	programProperties.correctAnswersToDelete.value = INT_MAX;
+	programProperties.millisecondsToAnswerForCharacter.value = INT_MAX;
 	saveProperties();
 }
 
 void ProgramDirectories::getProperties()
 {
+	programProperties.correctAnswersToDelete.name = L"correctAnswersToDelete";
+	programProperties.millisecondsToAnswerForCharacter.name = L"millisecondsToAnswerForCharacter";
+
 	wifstream propertiesFile(getPathToFile(programFiles.properties));
 	propertiesFile.imbue(std::locale(propertiesFile.getloc(), new codecvt_utf8<wchar_t, 0x10ffff, consume_header>()));
 
 	if (propertiesFile.is_open())
 	{
-		wstring correctAnswersToDeleteName = L"correctAnswersToDelete";
+		vector<Property*> properties = programProperties.getPropertiesList();
 
-		wstring propertyName;
-
-		do
+		for (int i = 0; i < properties.size(); i++)
 		{
-			propertiesFile >> propertyName;
-		} while (propertyName != correctAnswersToDeleteName);
+			wstring propertyNameFromFile;
+			int propertyValueFromFile;
 
-		if (!(propertiesFile >> programProperties.correctAnswersToDelete))
-		{
-			propertiesFile.close();
-			saveDefaulProperties();
-			return;
+			if (propertiesFile >> propertyNameFromFile && propertyNameFromFile == properties[i]->name && propertiesFile >> propertyValueFromFile)
+			{
+				properties[i]->value = propertyValueFromFile;
+			}
+			else
+			{
+				propertiesFile.close();
+				saveDefaulProperties();
+				return;
+			}
 		}
 
 		propertiesFile.close();
@@ -93,12 +100,15 @@ void ProgramDirectories::getProperties()
 
 void ProgramDirectories::saveProperties()
 {
-	wstring correctAnswersToDeleteName = L"correctAnswersToDelete";
+	vector<Property*> properties = programProperties.getPropertiesList();
 
 	wofstream propertiesFile(getPathToFile(programFiles.properties));
 	propertiesFile.imbue(std::locale(propertiesFile.getloc(), new codecvt_utf8<wchar_t, 0x10ffff, consume_header>()));
 
-	propertiesFile << correctAnswersToDeleteName << L' ' << programProperties.correctAnswersToDelete;
+	for (int i = 0; i < properties.size(); i++)
+	{
+		propertiesFile << properties[i]->name << L' ' << properties[i]->value << endl;
+	}
 
 	propertiesFile.close();
 }

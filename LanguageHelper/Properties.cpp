@@ -1,39 +1,62 @@
 #include "Properties.h"
 
-wstring getCorrectAnswerProperty()
+wstring getPropertyOptionName(ProgramDirectories::Property* prop)
 {
-	if (ProgramDirectories::programProperties.correctAnswersToDelete == SHRT_MAX)
+	if (prop->value >= INT_MAX)
 	{
-		return L"correctAnswerProperty OFF";
+		return prop->name + L" OFF";
 	}
 
-	return L"correctAnswerProperty " + to_wstring(ProgramDirectories::programProperties.correctAnswersToDelete);
+	return prop->name + L" " + to_wstring(prop->value);
+}
+
+void changeAnswerTimeProperty(wstring& propertyName)
+{
+	ProgramDirectories::Property* answerTimeProperty = &ProgramDirectories::programProperties.millisecondsToAnswerForCharacter;
+
+	if (answerTimeProperty->value == INT_MAX)
+	{
+		answerTimeProperty->value = 5000;
+	}
+	else if (answerTimeProperty->value <= 500)
+	{
+		answerTimeProperty->value = INT_MAX;
+	}
+	else
+	{
+		answerTimeProperty->value -= 500;
+	}
+
+	propertyName = getPropertyOptionName(answerTimeProperty);
 }
 
 void changeCorrectAnswerProperty(wstring& propertyName)
 {
-	if (ProgramDirectories::programProperties.correctAnswersToDelete == SHRT_MAX)
+	ProgramDirectories::Property* correctAnswerProperty = &ProgramDirectories::programProperties.correctAnswersToDelete;
+
+	if (correctAnswerProperty->value == INT_MAX)
 	{
-		ProgramDirectories::programProperties.correctAnswersToDelete = 10;
+		correctAnswerProperty->value = 10;
 	}
-	else if (ProgramDirectories::programProperties.correctAnswersToDelete == 1)
+	else if (correctAnswerProperty->value <= 1)
 	{
-		ProgramDirectories::programProperties.correctAnswersToDelete = SHRT_MAX;
+		correctAnswerProperty->value = INT_MAX;
 	}
 	else
 	{
-		ProgramDirectories::programProperties.correctAnswersToDelete--;
+		correctAnswerProperty->value--;
 	}
 
-	propertyName = getCorrectAnswerProperty();
+	propertyName = getPropertyOptionName(correctAnswerProperty);
 }
 
 void propertiesMenu(wstring&)
 {
-	wstring correctAnswerProperty = getCorrectAnswerProperty();
-
-	vector<wstring> propertiesNames = { correctAnswerProperty };
-	vector<void (*)(wstring&)> functions = { changeCorrectAnswerProperty };
+	vector<wstring> propertiesNames = {
+		getPropertyOptionName(&ProgramDirectories::programProperties.correctAnswersToDelete) ,
+		getPropertyOptionName(&ProgramDirectories::programProperties.millisecondsToAnswerForCharacter)
+	};
+	vector<void (*)(wstring&)> functions = { changeCorrectAnswerProperty , changeAnswerTimeProperty };
 	wstring selectText = L"Current properties";
 	wstring exitText = L"Back";
 	wconsoleMenu propertiesMenu(propertiesNames, functions, selectText, exitText);

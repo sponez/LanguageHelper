@@ -33,11 +33,13 @@ public:
 	wconsoleMenu(vector<wstring>&, wstring, wstring); //Console menu without functions
 	wconsoleMenu(vector<wstring>&, vector<void (*)(wstring&)>&, wstring, wstring); //Console menu with different functions
 
-//Other public functions
-	static void consoleWstringEditor(wstring&, wstring);
+	//Other public functions
+	static void consoleWstringEditor(wstring& string);
+	static bool consoleWstringEditor(wstring& string, double millisecondsToEdit);
 	static vector<wstring> wstringSplitter(wstring&, wstring);
 	static double DamerauLevenshteinDistance(wstring&, wstring&);
 
+	//Select variations
 	void singleSelect(short&);
 	void singleSelect();
 	void singleSelectWithFilter(short&, wstring&, bool);
@@ -48,11 +50,14 @@ public:
 	void cyclicSelectWithFilter();
 };
 
-void wconsoleMenu::consoleWstringEditor(wstring& s, wstring editorText = L"Edit: ")
+inline bool wconsoleMenu::consoleWstringEditor(wstring& str, double millisecondsToEdit)
 {
-	HANDLE consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
-	COORD cursorPosition;
-	wstring backup = s;
+	COORD zeroCursorPosition;
+	short currentStringPosition;
+	wstring backup = str;
+	clock_t startTime = clock();
+	bool inTime = true;
+
 	const size_t MAX_LENGTH = 1024;
 	const wchar_t ESC = 27;
 	const wchar_t ENTER = 13;
@@ -61,20 +66,33 @@ void wconsoleMenu::consoleWstringEditor(wstring& s, wstring editorText = L"Edit:
 	const wchar_t ARROW_RIGHT = 77;
 	const wchar_t BACKSPACE = 8;
 
-	_wsystem(L"cls");
-	cursorPosition.Y = 0;
-	cursorPosition.X = editorText.length() + s.length();
+	GetConsoleCursorPosition();
+	zeroCursorPosition = cursorPosition;
 
-	wcout << editorText << s;
-	for (;; Sleep(10))
+	wcout << str;
+	currentStringPosition = str.length();
+
+	for (; inTime;)
 	{
-		wchar_t wch;
-
-		if (wch = _getwch())
+		if (millisecondsToEdit < INT_MAX)
 		{
+			for (; !kbhit(); Sleep(5))
+			{
+				if (clock() - startTime > millisecondsToEdit)
+				{
+					inTime = false;
+					break;
+				}
+			}
+		}
+
+		if (inTime)
+		{
+			wchar_t wch = _getwch();
+
 			if (wch == ESC)
 			{
-				s = backup;
+				str = backup;
 				_wsystem(L"cls");
 				break;
 			}
@@ -89,18 +107,20 @@ void wconsoleMenu::consoleWstringEditor(wstring& s, wstring editorText = L"Edit:
 
 				if (wch == ARROW_LEFT)
 				{
-					if (cursorPosition.X > editorText.length())
+					if (currentStringPosition > 0)
 					{
-						cursorPosition.X--;
+						currentStringPosition--;
+						cursorPosition.X = zeroCursorPosition.X + currentStringPosition;
 						SetConsoleCursorPosition(consoleHandle, cursorPosition);
 					}
 				}
 
 				if (wch == ARROW_RIGHT)
 				{
-					if (cursorPosition.X < (editorText.length() + s.length()))
+					if (currentStringPosition < str.length())
 					{
-						cursorPosition.X++;
+						currentStringPosition++;
+						cursorPosition.X = zeroCursorPosition.X + currentStringPosition;
 						SetConsoleCursorPosition(consoleHandle, cursorPosition);
 					}
 				}
@@ -109,30 +129,44 @@ void wconsoleMenu::consoleWstringEditor(wstring& s, wstring editorText = L"Edit:
 			{
 				if (wch == BACKSPACE)
 				{
-					if (s.length() > 0 && cursorPosition.X > editorText.length())
+					if (str.length() > 0 && currentStringPosition > 0)
 					{
-						short posToDelete = cursorPosition.X - editorText.length() - 1;
-						s.erase(posToDelete, 1);
-						cursorPosition.X--;
+						str.erase(currentStringPosition - 1, 1);
+						currentStringPosition--;
+
+						offCursor();
+						SetConsoleCursorPosition(consoleHandle, zeroCursorPosition);
+						wcout << str << L' ';
+						cursorPosition.X = zeroCursorPosition.X + currentStringPosition;
+						SetConsoleCursorPosition(consoleHandle, cursorPosition);
+						onCursor();
 					}
 				}
 				else
 				{
-					if (s.length() < MAX_LENGTH)
+					if (str.length() < MAX_LENGTH)
 					{
-						short posToInsert = cursorPosition.X - editorText.length();
-						s.insert(posToInsert, 1, wch);
-						cursorPosition.X++;
+						str.insert(currentStringPosition, 1, wch);
+						currentStringPosition++;
+
+						offCursor();
+						SetConsoleCursorPosition(consoleHandle, zeroCursorPosition);
+						wcout << str;
+						cursorPosition.X = zeroCursorPosition.X + currentStringPosition;
+						SetConsoleCursorPosition(consoleHandle, cursorPosition);
+						onCursor();
 					}
 				}
-
-				_wsystem(L"cls");
-				wcout << editorText << s;
-				SetConsoleCursorPosition(consoleHandle, cursorPosition);
 			}
-
 		}
 	}
+
+	return inTime;
+}
+
+inline void wconsoleMenu::consoleWstringEditor(wstring& str)
+{
+	consoleWstringEditor(str, INT_MAX);
 }
 
 vector<wstring> wconsoleMenu::wstringSplitter(wstring& s, wstring det = L" ")
