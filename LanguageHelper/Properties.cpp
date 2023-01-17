@@ -16,15 +16,15 @@ void changeAnswerTimeProperty(wstring& propertyName)
 
 	if (answerTimeProperty->value == INT_MAX)
 	{
-		answerTimeProperty->value = 5000;
+		answerTimeProperty->value = 3000;
 	}
-	else if (answerTimeProperty->value <= 500)
+	else if (answerTimeProperty->value <= 200)
 	{
 		answerTimeProperty->value = INT_MAX;
 	}
 	else
 	{
-		answerTimeProperty->value -= 500;
+		answerTimeProperty->value -= 200;
 	}
 
 	propertyName = getPropertyOptionName(answerTimeProperty);

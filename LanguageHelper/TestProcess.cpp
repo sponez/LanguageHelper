@@ -3,6 +3,24 @@
 wstring currentLanguage;
 wstring currentStage;
 
+double findTimeToAnswer(vector<wstring>& translations)
+{
+	if (ProgramDirectories::programProperties.millisecondsToAnswerForCharacter.value != INT_MAX)
+	{
+		const double timeToRead = 1000;
+		unsigned long long maxLen = 0;
+
+		for (wstring translation : translations)
+		{
+			maxLen = max(maxLen, translation.length());
+		}
+
+		return timeToRead + maxLen * ProgramDirectories::programProperties.millisecondsToAnswerForCharacter.value;
+	}
+
+	return INT_MAX;
+}
+
 void workOnMistakes(wstring&)
 {
 	vector<wstring> unpassedWords;
@@ -41,24 +59,11 @@ void workOnMistakes(wstring&)
 			continue;
 		}
 
-		double msToAnswer = INT_MAX;
-		if (ProgramDirectories::programProperties.millisecondsToAnswerForCharacter.value != INT_MAX)
-		{
-			unsigned long long maxLen = 0;
-
-			for (wstring translation : translations)
-			{
-				maxLen = max(maxLen, translation.length());
-			}
-
-			msToAnswer = maxLen * ProgramDirectories::programProperties.millisecondsToAnswerForCharacter.value;
-		}
-
 		wcout << L"Leave empty to exit." << endl;
 		wcout << word << L" is: ";
 
 		wstring answer;
-		if (wconsoleMenu::consoleWstringEditor(answer, msToAnswer))
+		if (wconsoleMenu::consoleWstringEditor(answer, findTimeToAnswer(translations)))
 		{
 			if (answer.empty()) { break; }
 			wordToLowerCase(answer);
@@ -81,7 +86,8 @@ void workOnMistakes(wstring&)
 		else
 		{
 			_wsystem(L"cls");
-			wcout << L"You are run of time!" << endl;
+			wcout << L"You run out of time!" << endl;
+			printTranslations(translations);
 			_wsystem(L"pause");
 
 			currentWordIndex++;
@@ -160,24 +166,11 @@ void openAnswerTest(wstring&)
 				continue;
 			}
 
-			double msToAnswer = INT_MAX;
-			if (ProgramDirectories::programProperties.millisecondsToAnswerForCharacter.value != INT_MAX)
-			{
-				unsigned long long maxLen = 0;
-
-				for (wstring translation : translations)
-				{
-					maxLen = max(maxLen, translation.length());
-				}
-
-				msToAnswer = maxLen * ProgramDirectories::programProperties.millisecondsToAnswerForCharacter.value;
-			}
-
 			wcout << L"Leave empty to exit." << endl;
 			wcout << word << L" is: ";
 
 			wstring answer;
-			if (wconsoleMenu::consoleWstringEditor(answer, msToAnswer))
+			if (wconsoleMenu::consoleWstringEditor(answer, findTimeToAnswer(translations)))
 			{
 				if (answer.empty()) { break; }
 				wordToLowerCase(answer);
@@ -187,26 +180,28 @@ void openAnswerTest(wstring&)
 				{
 					correctAnswers++;
 					overallCorrectAnswers[word]++;
+
+					if (overallCorrectAnswers[word] >= ProgramDirectories::programProperties.correctAnswersToDelete.value)
+					{
+						MoveFileW(ProgramDirectories::getPathToFile(word, currentLanguage, ProgramDirectories::stages.unlearned).c_str(),
+							ProgramDirectories::getPathToFile(word, currentLanguage, ProgramDirectories::stages.learned).c_str());
+
+						removeElement(word, usedWords);
+						removeElement(word, unusedWords);
+						overallCorrectAnswers.erase(word);
+					}
 				}
 				else { overallCorrectAnswers[word] = 0; }
 			}
 			else
 			{
 				_wsystem(L"cls");
-				wcout << L"You are run of time!" << endl;
+				wcout << L"You run out of time!" << endl;
+				printTranslations(translations);
 				_wsystem(L"pause");
 
+				amountOfRepeats++;
 				overallCorrectAnswers[word] = 0;
-			}
-
-			if (overallCorrectAnswers[word] >= ProgramDirectories::programProperties.correctAnswersToDelete.value)
-			{
-				MoveFileW(ProgramDirectories::getPathToFile(word, currentLanguage, ProgramDirectories::stages.unlearned).c_str(),
-					ProgramDirectories::getPathToFile(word, currentLanguage, ProgramDirectories::stages.learned).c_str());
-
-				removeElement(word, usedWords);
-				removeElement(word, unusedWords);
-				overallCorrectAnswers.erase(word);
 			}
 
 			_wsystem(L"cls");
@@ -252,6 +247,7 @@ void openAnswerTest(wstring&)
 			}
 
 			vector<wstring> translations;
+			getVectorFromWfile(ProgramDirectories::getPathToFile(word, currentLanguage, currentStage), translations, true);
 			if (translations.empty())
 			{
 				wcout << L"Word \"" << word << L"\" doesn't exist already" << endl;
@@ -265,17 +261,26 @@ void openAnswerTest(wstring&)
 			wcout << word << L" is: ";
 
 			wstring answer;
-			getline(wcin, answer);
-			if (answer.empty())
+			if (wconsoleMenu::consoleWstringEditor(answer, findTimeToAnswer(translations)))
+			{
+				if (answer.empty()) { break; }
+				wordToLowerCase(answer);
+
+				if (!sucsessFeedback(answer, translations))
+				{
+					MoveFileW(ProgramDirectories::getPathToFile(word, currentLanguage, ProgramDirectories::stages.learned).c_str(),
+						ProgramDirectories::getPathToFile(word, currentLanguage, ProgramDirectories::stages.unlearned).c_str());
+
+					removeElement(word, allWords);
+				}
+			}
+			else
 			{
 				_wsystem(L"cls");
-				break;
-			}
-			wordToLowerCase(answer);
+				wcout << L"You run out of time!" << endl;
+				printTranslations(translations);
+				_wsystem(L"pause");
 
-			getVectorFromWfile(ProgramDirectories::getPathToFile(word, currentLanguage, currentStage), translations, true);
-			if (!sucsessFeedback(answer, translations))
-			{
 				MoveFileW(ProgramDirectories::getPathToFile(word, currentLanguage, ProgramDirectories::stages.learned).c_str(),
 					ProgramDirectories::getPathToFile(word, currentLanguage, ProgramDirectories::stages.unlearned).c_str());
 
