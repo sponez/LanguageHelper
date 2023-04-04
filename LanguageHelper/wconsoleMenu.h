@@ -28,6 +28,8 @@ class wconsoleMenu : consoleParameters
 	void setPosition(short&, vector<pair<wstring, void (*)(wstring&)>>&);
 
 public:
+	inline static unsigned short maxLinesInWindow = 30;
+
 	//Initializers
 	wconsoleMenu() {}; //Empty console menu
 	wconsoleMenu(vector<wstring>&, wstring, wstring); //Console menu without functions
@@ -323,13 +325,39 @@ void wconsoleMenu::drawMenu(vector<pair<wstring, void (*)(wstring&)>>& options, 
 	}
 
 	drawPosition.X = 2;
-	for (unsigned short i = 0; i < options.size(); i++)
+	if (options.size() <= 2 * maxLinesInWindow)
 	{
-		drawPosition.Y = (short)!isSelectTextEmpty + i;
-		SetConsoleCursorPosition(consoleHandle, drawPosition);
+		for (unsigned short i = 0; i < options.size(); i++)
+		{
+			drawPosition.Y = (short)!isSelectTextEmpty + i;
+			SetConsoleCursorPosition(consoleHandle, drawPosition);
 
-		if (i != currentPosition)
+			if (i != currentPosition)
+				wcout << options[i].first;
+		}
+	}
+	else
+	{
+		for (unsigned short i = 0; i < maxLinesInWindow && i < currentPosition; i++)
+		{
+			drawPosition.Y = (short)!isSelectTextEmpty + i;
+			SetConsoleCursorPosition(consoleHandle, drawPosition);
 			wcout << options[i].first;
+		}
+
+		for (unsigned short i = currentPosition + 1; i < currentPosition + maxLinesInWindow; i++)
+		{
+			drawPosition.Y = (short)!isSelectTextEmpty + i;
+			SetConsoleCursorPosition(consoleHandle, drawPosition);
+			wcout << options[i].first;
+		}
+
+		for (unsigned short i = options.size() - 1; i > (options.size() - maxLinesInWindow - 1) && i >= currentPosition + maxLinesInWindow; i--)
+		{
+			drawPosition.Y = (short)!isSelectTextEmpty + i;
+			SetConsoleCursorPosition(consoleHandle, drawPosition);
+			wcout << options[i].first;
+		}
 	}
 
 	drawPosition.Y = (short)!isSelectTextEmpty + currentPosition;
@@ -367,7 +395,7 @@ void wconsoleMenu::displayFilteredOptions(wstring& filterText, vector<pair<wstri
 	drawPosition.X = 2;
 	if (filteredOptions.size() > 0)
 	{
-		for (int i = 0; i < filteredOptions.size(); i++)
+		for (int i = 0; i < filteredOptions.size() && i < (maxLinesInWindow - 1); i++)
 		{
 			drawPosition.Y = 1 + i;
 			SetConsoleCursorPosition(consoleHandle, drawPosition);
@@ -444,7 +472,6 @@ bool wconsoleMenu::selectController(vector<pair<wstring, void (*)(wstring&)>>& o
 		{
 			while (_kbhit()) ignore = _getwch();
 
-			currentPosition = 0;
 			onCursor();
 			_wsystem(L"cls");
 
@@ -623,7 +650,11 @@ void wconsoleMenu::singleSelectWithFilter(short& position, wstring& filterText, 
 		}
 		else
 		{
-			position = listOfRealOptionsNumbers[0];
+			if (!isExitTextEmpty && positionInFilteredList == filteredOptions.size() - 1)
+				position = -1;
+			else
+				position = listOfRealOptionsNumbers[positionInFilteredList];
+
 			displayFilteredOptions(filterText, filteredOptions);
 		}
 	}
@@ -636,10 +667,21 @@ void wconsoleMenu::singleSelectWithFilter(short& position, wstring& filterText, 
 		{
 			if (wch == 27)
 			{
-				_wsystem(L"cls");
-				isSelectTextEmpty = (selectText == L"");
-				position = -1;
-				return;
+				if (filterText == L"")
+				{
+					_wsystem(L"cls");
+					isSelectTextEmpty = (selectText == L"");
+					position = -1;
+					return;
+				}
+				else
+				{
+					filterText.clear();
+					cursorPosition.X = selectText.length();
+
+					filteredOptions = optionsFilterer(filterText, listOfRealOptionsNumbers);
+					displayFilteredOptions(filterText, filteredOptions);
+				}
 			}
 			else if (wch == 13)
 			{
@@ -668,7 +710,11 @@ void wconsoleMenu::singleSelectWithFilter(short& position, wstring& filterText, 
 				}
 				else
 				{
-					position = listOfRealOptionsNumbers[0];
+					if (!isExitTextEmpty && positionInFilteredList == filteredOptions.size() - 1)
+						position = -1;
+					else
+						position = listOfRealOptionsNumbers[positionInFilteredList];
+
 					displayFilteredOptions(filterText, filteredOptions);
 					continue;
 				}
@@ -760,18 +806,16 @@ void wconsoleMenu::cyclicSelectWithFilter(short& position, wstring& filterText, 
 		{
 			if (selectController(filteredOptions, positionInFilteredList, filterText))
 			{
-				if (!isExitTextEmpty && positionInFilteredList == filteredOptions.size() - 1)
-					position = -1;
-				else
-					position = listOfRealOptionsNumbers[positionInFilteredList];
-
 				filteredOptions[positionInFilteredList].second(filteredOptions[positionInFilteredList].first);
 			}
 			else
 				break;
 		} while (isExitTextEmpty || positionInFilteredList != filteredOptions.size() - 1);
 
-		position = listOfRealOptionsNumbers[0];
+		if (!isExitTextEmpty && positionInFilteredList == filteredOptions.size() - 1)
+			position = -1;
+		else
+			position = listOfRealOptionsNumbers[positionInFilteredList];
 		displayFilteredOptions(filterText, filteredOptions);
 	}
 
@@ -783,10 +827,21 @@ void wconsoleMenu::cyclicSelectWithFilter(short& position, wstring& filterText, 
 		{
 			if (wch == 27)
 			{
-				_wsystem(L"cls");
-				isSelectTextEmpty = (selectText == L"");
-				position = -1;
-				return;
+				if (filterText == L"")
+				{
+					_wsystem(L"cls");
+					isSelectTextEmpty = (selectText == L"");
+					position = -1;
+					return;
+				}
+				else
+				{
+					filterText.clear();
+					cursorPosition.X = selectText.length();
+					
+					filteredOptions = optionsFilterer(filterText, listOfRealOptionsNumbers);
+					displayFilteredOptions(filterText, filteredOptions);
+				}
 			}
 			else if (wch == 13)
 			{

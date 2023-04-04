@@ -118,10 +118,17 @@ void addTranslationsManual(wstring& word, wstring& wordPath, vector<wstring>& tr
 {
 	_wsystem(L"cls");
 
+	vector<wstring> translationsWithoutBrackets;
+	for (wstring translation : translations)
+	{
+		removeTextInBracket(translation);
+		translationsWithoutBrackets.push_back(translation);
+	}
+
 	while (true)
 	{
 		wstring translation;
-		wstring translationWhithoutBracket;
+		wstring translationWhithoutBrackets;
 
 		wcout << L"Leave empty to exit." << endl;
 		wcout << L"Enter a translation: ";
@@ -134,23 +141,32 @@ void addTranslationsManual(wstring& word, wstring& wordPath, vector<wstring>& tr
 		}
 
 		wordToLowerCase(translation);
-		translationWhithoutBracket = wstring(translation);
-		removeTextInBracket(translationWhithoutBracket);
+		translationWhithoutBrackets = wstring(translation);
+		removeTextInBracket(translationWhithoutBrackets);
 
-		if (!contains(translations, translationWhithoutBracket))
+		if (!contains(translationsWithoutBrackets, translationWhithoutBrackets))
 		{
+			translationsWithoutBrackets.push_back(translationWhithoutBrackets);
 			translations.push_back(translation);
 
-			if (translationWhithoutBracket.size() <= MAX_WORD_LENGTH)
+			if (translationWhithoutBrackets.size() <= MAX_WORD_LENGTH)
 			{
 				wstring reverseWordPath;
 				vector<wstring> reverseTranslations;
+				vector<wstring> reverseTranslationsWithoutBrackets;
 
-				reverseWordPath = ProgramDirectories::getPathToFile(translationWhithoutBracket, ProgramDirectories::reverseLanguage(currentLanguage), ProgramDirectories::stages.unlearned);
-				getVectorFromWfile(reverseWordPath, reverseTranslations, true);
-				if (!contains(reverseTranslations, word))
+				reverseWordPath = ProgramDirectories::getPathToFile(translationWhithoutBrackets, ProgramDirectories::reverseLanguage(currentLanguage), ProgramDirectories::stages.learned);
+				if (!isPathExist(reverseWordPath))
 				{
-					wstring question = L"Add translation \"" + word + L"\" into the word \"" + translationWhithoutBracket + L"\"?";
+					reverseWordPath = ProgramDirectories::getPathToFile(translationWhithoutBrackets, ProgramDirectories::reverseLanguage(currentLanguage), ProgramDirectories::stages.unlearned);
+				}
+
+				getVectorFromWfile(reverseWordPath, reverseTranslations);
+				getVectorFromWfile(reverseWordPath, reverseTranslationsWithoutBrackets, true);
+
+				if (!contains(reverseTranslationsWithoutBrackets, word))
+				{
+					wstring question = L"Add translation \"" + word + L"\" into the word \"" + translationWhithoutBrackets + L"\"?";
 					if (askQuestion(question))
 					{
 						reverseTranslations.push_back(word);
@@ -180,6 +196,7 @@ void addWordFunction(wstring&)
 {
 	wstring word;
 	wstring wordPath;
+	vector<wstring> translations;
 
 	wcout << L"Enter the word: ";
 	getline(wcin, word);
@@ -200,15 +217,36 @@ void addWordFunction(wstring&)
 
 	wordToLowerCase(word);
 
-	wordPath = ProgramDirectories::getPathToFile(word, currentLanguage, currentStage);
+	wordPath = ProgramDirectories::getPathToFile(word, currentLanguage, ProgramDirectories::stages.unlearned);
 	if (isPathExist(wordPath))
 	{
-		wcout << L"This word already exist." << endl;
+		getVectorFromWfile(wordPath, translations);
+
+		wcout << L"Word " << word;
+		wcout << L" with translations: ";
+		printVector(translations, L", ");
+		wcout << L" already exist." << endl;
 		_wsystem(L"pause");
-		return;
+
+		if (!askQuestion(L"Would you like to add new translations?")) return;
+	}
+	else if (isPathExist(ProgramDirectories::getPathToFile(word, currentLanguage, ProgramDirectories::reverseStage(currentStage))))
+	{
+		if (askQuestion(L"This word already in learned folder. Would you like to return back into unlearned?"))
+		{
+			MoveFileW(ProgramDirectories::getPathToFile(word, currentLanguage, ProgramDirectories::stages.learned).c_str(), wordPath.c_str());
+			getVectorFromWfile(wordPath, translations);
+
+			wcout << L"Word " << word;
+			wcout << L" with translations: ";
+			printVector(translations, L", ");
+			wcout << L" moved to unlearned." << endl;
+			_wsystem(L"pause");
+
+			if (!askQuestion(L"Would you like to add new translations?")) return;
+		}
 	}
 
-	vector<wstring> translations;
 	addTranslationsManual(word, wordPath, translations);
 }
 
@@ -269,7 +307,7 @@ void addTranslationFunction(wstring&)
 {
 	wstring wordPath = ProgramDirectories::getPathToFile(*currentWordPointer, currentLanguage, currentStage);
 	vector<wstring> translations;
-	getVectorFromWfile(wordPath, translations, true);
+	getVectorFromWfile(wordPath, translations);
 	addTranslationsManual(*currentWordPointer, wordPath, translations);
 }
 
