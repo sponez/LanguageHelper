@@ -222,10 +222,10 @@ void addWordFunction(wstring&)
 	{
 		getVectorFromWfile(wordPath, translations);
 
-		wcout << L"Word " << word;
-		wcout << L" with translations: ";
-		printVector(translations, L", ");
-		wcout << L" already exist." << endl;
+		wcout << L"Word \"" << word << L'\"';
+		wcout << L" with translations: { ";
+		printVector(translations, L", ", false);
+		wcout << L" } already exist." << endl;
 		_wsystem(L"pause");
 
 		if (!askQuestion(L"Would you like to add new translations?")) return;
@@ -237,10 +237,10 @@ void addWordFunction(wstring&)
 			MoveFileW(ProgramDirectories::getPathToFile(word, currentLanguage, ProgramDirectories::stages.learned).c_str(), wordPath.c_str());
 			getVectorFromWfile(wordPath, translations);
 
-			wcout << L"Word " << word;
-			wcout << L" with translations: ";
-			printVector(translations, L", ");
-			wcout << L" moved to unlearned." << endl;
+			wcout << L"Word \"" << word << L'\"';
+			wcout << L" with translations: { ";
+			printVector(translations, L", ", false);
+			wcout << L"} moved to unlearned." << endl;
 			_wsystem(L"pause");
 
 			if (!askQuestion(L"Would you like to add new translations?")) return;
