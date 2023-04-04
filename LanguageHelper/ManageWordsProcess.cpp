@@ -240,7 +240,7 @@ void addWordFunction(wstring&)
 			wcout << L"Word \"" << word << L'\"';
 			wcout << L" with translations: { ";
 			printVector(translations, L", ", false);
-			wcout << L"} moved to unlearned." << endl;
+			wcout << L" } moved to unlearned." << endl;
 			_wsystem(L"pause");
 
 			if (!askQuestion(L"Would you like to add new translations?")) return;
