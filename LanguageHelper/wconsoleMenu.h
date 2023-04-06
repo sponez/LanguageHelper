@@ -345,14 +345,14 @@ void wconsoleMenu::drawMenu(vector<pair<wstring, void (*)(wstring&)>>& options, 
 			wcout << options[i].first;
 		}
 
-		for (unsigned short i = currentPosition + 1; i < currentPosition + maxLinesInWindow; i++)
+		for (unsigned short i = currentPosition + 1; i < currentPosition + maxLinesInWindow && i < options.size(); i++)
 		{
 			drawPosition.Y = (short)!isSelectTextEmpty + i;
 			SetConsoleCursorPosition(consoleHandle, drawPosition);
 			wcout << options[i].first;
 		}
 
-		for (unsigned short i = options.size() - 1; i > (options.size() - maxLinesInWindow - 1) && i >= currentPosition + maxLinesInWindow; i--)
+		for (unsigned short i = options.size() - 1; i > options.size() - maxLinesInWindow - 1; i--)
 		{
 			drawPosition.Y = (short)!isSelectTextEmpty + i;
 			SetConsoleCursorPosition(consoleHandle, drawPosition);
