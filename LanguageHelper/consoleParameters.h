@@ -7,6 +7,7 @@ class consoleParameters
 protected:
 	inline static HANDLE consoleHandle;
 	inline static HWND consoleWindow;
+	inline static RECT consoleWindowCoordinates;
 	inline static CONSOLE_CURSOR_INFO structCursorInfo;
 	inline static COORD cursorPosition;
 
@@ -15,12 +16,14 @@ public:
 	static void onCursor();
 	static void offCursor();
 	static void GetConsoleCursorPosition();
+	static unsigned short getCurrentHeight();
 };
 
 consoleParameters::consoleParameters()
 {
 	consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
 	consoleWindow = GetConsoleWindow();
+	GetWindowRect(consoleWindow, &consoleWindowCoordinates);
 	GetConsoleCursorInfo(consoleHandle, &structCursorInfo);
 	cursorPosition.X = 0;
 	cursorPosition.Y = 0;
@@ -47,7 +50,12 @@ void consoleParameters::GetConsoleCursorPosition()
 	}
 	else
 	{
-		// The function failed. Call GetLastError() for details.
-		cursorPosition ={ 0, 0 };
+		cursorPosition = { 0, 0 };
 	}
+}
+
+unsigned short consoleParameters::getCurrentHeight()
+{
+	GetWindowRect(consoleWindow, &consoleWindowCoordinates);
+	return (consoleWindowCoordinates.bottom - consoleWindowCoordinates.top) / 16;
 }

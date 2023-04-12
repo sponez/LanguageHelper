@@ -57,7 +57,6 @@ void ProgramDirectories::saveDefaulProperties()
 {
 	programProperties.correctAnswersToDelete.value = INT_MAX;
 	programProperties.millisecondsToAnswerForCharacter.value = INT_MAX;
-	programProperties.maxLinesInWindow.value = 30;
 	saveProperties();
 }
 
@@ -65,7 +64,6 @@ void ProgramDirectories::getProperties()
 {
 	programProperties.correctAnswersToDelete.name = L"correctAnswersToDelete";
 	programProperties.millisecondsToAnswerForCharacter.name = L"millisecondsToAnswerForCharacter";
-	programProperties.maxLinesInWindow.name = L"maxLinesInWindow";
 
 	wifstream propertiesFile(getPathToFile(programFiles.properties));
 	propertiesFile.imbue(std::locale(propertiesFile.getloc(), new codecvt_utf8<wchar_t, 0x10ffff, consume_header>()));

@@ -39,11 +39,10 @@ private:
 	{
 		Property correctAnswersToDelete;
 		Property millisecondsToAnswerForCharacter;
-		Property maxLinesInWindow;
 
 		vector<Property*> getPropertiesList()
 		{
-			return { &correctAnswersToDelete , &millisecondsToAnswerForCharacter , &maxLinesInWindow };
+			return { &correctAnswersToDelete , &millisecondsToAnswerForCharacter };
 		}
 	};
 

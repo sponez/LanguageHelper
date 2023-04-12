@@ -10,23 +10,6 @@ wstring getPropertyOptionName(ProgramDirectories::Property* prop)
 	return prop->name + L" " + to_wstring(prop->value);
 }
 
-void changeMaxLinesInWindow(wstring& propertyName)
-{
-	ProgramDirectories::Property* maxLinesInWindowProperty = &ProgramDirectories::programProperties.maxLinesInWindow;
-
-	if (maxLinesInWindowProperty->value <= 5)
-	{
-		maxLinesInWindowProperty->value = 100;
-	}
-	else
-	{
-		maxLinesInWindowProperty->value -= 1;
-	}
-
-	wconsoleMenu::maxLinesInWindow = maxLinesInWindowProperty->value;
-	propertyName = getPropertyOptionName(maxLinesInWindowProperty);
-}
-
 void changeAnswerTimeProperty(wstring& propertyName)
 {
 	ProgramDirectories::Property* answerTimeProperty = &ProgramDirectories::programProperties.millisecondsToAnswerForCharacter;
@@ -71,10 +54,9 @@ void propertiesMenu(wstring&)
 {
 	vector<wstring> propertiesNames = {
 		getPropertyOptionName(&ProgramDirectories::programProperties.correctAnswersToDelete) ,
-		getPropertyOptionName(&ProgramDirectories::programProperties.millisecondsToAnswerForCharacter) ,
-		getPropertyOptionName(&ProgramDirectories::programProperties.maxLinesInWindow)
+		getPropertyOptionName(&ProgramDirectories::programProperties.millisecondsToAnswerForCharacter)
 	};
-	vector<void (*)(wstring&)> functions = { changeCorrectAnswerProperty , changeAnswerTimeProperty , changeMaxLinesInWindow };
+	vector<void (*)(wstring&)> functions = { changeCorrectAnswerProperty , changeAnswerTimeProperty };
 	wstring selectText = L"Current properties";
 	wstring exitText = L"Back";
 	wconsoleMenu propertiesMenu(propertiesNames, functions, selectText, exitText);

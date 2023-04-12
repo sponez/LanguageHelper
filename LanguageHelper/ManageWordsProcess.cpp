@@ -121,7 +121,7 @@ void addTranslationsManual(wstring& word, wstring& wordPath, vector<wstring>& tr
 	vector<wstring> translationsWithoutBrackets;
 	for (wstring translation : translations)
 	{
-		removeTextInBracket(translation);
+		cutTextInBracket(translation);
 		translationsWithoutBrackets.push_back(translation);
 	}
 
@@ -129,6 +129,7 @@ void addTranslationsManual(wstring& word, wstring& wordPath, vector<wstring>& tr
 	{
 		wstring translation;
 		wstring translationWhithoutBrackets;
+		wstring textInBrackets;
 
 		wcout << L"Leave empty to exit." << endl;
 		wcout << L"Enter a translation: ";
@@ -142,7 +143,7 @@ void addTranslationsManual(wstring& word, wstring& wordPath, vector<wstring>& tr
 
 		wordToLowerCase(translation);
 		translationWhithoutBrackets = wstring(translation);
-		removeTextInBracket(translationWhithoutBrackets);
+		textInBrackets = cutTextInBracket(translationWhithoutBrackets);
 
 		if (!contains(translationsWithoutBrackets, translationWhithoutBrackets))
 		{
@@ -169,7 +170,15 @@ void addTranslationsManual(wstring& word, wstring& wordPath, vector<wstring>& tr
 					wstring question = L"Add translation \"" + word + L"\" into the word \"" + translationWhithoutBrackets + L"\"?";
 					if (askQuestion(question))
 					{
-						reverseTranslations.push_back(word);
+						wstring newReverseTranslation = wstring(word);
+						if (textInBrackets.length() > 0 && askQuestion(L"Add brackets with text \"" + textInBrackets + L"\"?"))
+						{
+							newReverseTranslation += L" (";
+							newReverseTranslation += textInBrackets;
+							newReverseTranslation += L')';
+						}
+
+						reverseTranslations.push_back(newReverseTranslation);
 						saveVectorToWfile(reverseWordPath, reverseTranslations);
 					}
 				}
@@ -352,7 +361,7 @@ void translationEditorFunction(wstring& optionName)
 
 			translations.erase(currentTranslateIt);
 
-			removeTextInBracket(oldTranslation);
+			cutTextInBracket(oldTranslation);
 			reverseWordPath = ProgramDirectories::getPathToFile(oldTranslation, ProgramDirectories::reverseLanguage(currentLanguage), ProgramDirectories::stages.unlearned);
 			getVectorFromWfile(reverseWordPath, reverseTranslations, true);
 			if (!reverseTranslations.empty() && contains(reverseTranslations, *currentWordPointer))
@@ -376,7 +385,7 @@ void translationEditorFunction(wstring& optionName)
 
 			wstring newTranslation = wstring(*currentTranslationPointer);
 			wstring newTranslationWithoutBracket = wstring(*currentTranslationPointer);
-			removeTextInBracket(newTranslationWithoutBracket);
+			cutTextInBracket(newTranslationWithoutBracket);
 
 			if (!contains(translations, newTranslation))
 			{
@@ -520,7 +529,7 @@ void ranameWordFunction(wstring&)
 
 	for (wstring translation : translations)
 	{
-		removeTextInBracket(translation);
+		cutTextInBracket(translation);
 
 		wstring reverseWordPath = ProgramDirectories::getPathToFile(translation, ProgramDirectories::reverseLanguage(currentLanguage), ProgramDirectories::stages.unlearned);
 		vector<wstring> reverseTranslations;
@@ -535,7 +544,7 @@ void ranameWordFunction(wstring&)
 			if (bracketPosition != string::npos)
 			{
 				bracketWithText = L' ' + reverseTranslations[i].substr(bracketPosition);
-				removeTextInBracket(reverseTranslations[i]);
+				cutTextInBracket(reverseTranslations[i]);
 			}
 			else { bracketWithText = L""; }
 

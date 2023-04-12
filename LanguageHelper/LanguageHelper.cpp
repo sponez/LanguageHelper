@@ -9,7 +9,6 @@ using namespace std;
 int main(int argc, char* argv[])
 {
 	ProgramDirectories::getProgramDirectories();
-	wconsoleMenu::maxLinesInWindow = ProgramDirectories::programProperties.maxLinesInWindow.value;
 
 	if (argc == 1)
 	{

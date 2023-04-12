@@ -23,18 +23,54 @@ void capitalizedWord(wstring& word)
 	word[0] = toupper(word[0], locale(""));
 }
 
-void removeTextInBracket(wstring& string)
+wstring cutTextInBracket(wstring& string)
 {
-	for (int i = 0; i < string.length(); i++)
+	int stringLenght = string.length();
+	int leftBracketIndex = 0;
+	int rightBracketIndex = stringLenght - 1;
+
+	//Find left bracket index
+	while (leftBracketIndex < stringLenght && string[leftBracketIndex] != L'(')
 	{
-		if (string[i] == L'(')
-		{
-			string.erase(string.begin() + i, string.end());
-			break;
-		}
+		++leftBracketIndex;
 	}
 
-	while (string.back() == L' ') { string.pop_back(); }
+	//Find right bracket index
+	while (rightBracketIndex >= 0 && string[rightBracketIndex] != L')')
+	{
+		--rightBracketIndex;
+	}
+
+	//Check if brackets aren't found
+	if (leftBracketIndex == stringLenght || rightBracketIndex == -1)
+	{
+		return wstring();
+	}
+	else
+	{
+		//Find text in brackets
+		wstring textInBracket = string.substr(leftBracketIndex + 1, rightBracketIndex - leftBracketIndex - 1);
+
+		//Find left index to eraise from string
+		int leftIndexToErase = leftBracketIndex;
+		while (leftIndexToErase > 0 && string[leftIndexToErase - 1] == L' ')
+		{
+			--leftIndexToErase;
+		}
+
+		//Find right index to eraise from string
+		int rightIndexToErase = rightBracketIndex + 1;
+		while (rightIndexToErase < stringLenght && string[rightIndexToErase] == L' ')
+		{
+			++rightIndexToErase;
+		}
+
+		//Replace brackets with spaces before and after to one space
+		wstring replacementText = (leftIndexToErase == 0 || rightIndexToErase == stringLenght) ? L"" : L" ";
+		string.replace(string.begin() + leftIndexToErase, string.begin() + rightIndexToErase, replacementText);
+
+		return textInBracket;
+	}
 }
 
 void getWords(wstring path, vector<wstring>& emptyList)
@@ -112,7 +148,7 @@ void getVectorFromWfile(wstring filePath, vector<wstring>& emptyVector, bool rem
 
 	for (wstring word; getline(sourseFile, word);)
 	{
-		if (removeBracket) removeTextInBracket(word);
+		if (removeBracket) cutTextInBracket(word);
 		emptyVector.push_back(word);
 	}
 

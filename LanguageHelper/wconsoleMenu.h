@@ -28,7 +28,7 @@ class wconsoleMenu : consoleParameters
 	void setPosition(short&, vector<pair<wstring, void (*)(wstring&)>>&);
 
 public:
-	inline static unsigned short maxLinesInWindow = 30;
+	inline static unsigned short maxLinesInWindow = getCurrentHeight();
 
 	//Initializers
 	wconsoleMenu() {}; //Empty console menu
@@ -315,6 +315,8 @@ wconsoleMenu::wconsoleMenu(vector<wstring>& optionNames, vector<void (*)(wstring
 
 void wconsoleMenu::drawMenu(vector<pair<wstring, void (*)(wstring&)>>& options, short currentPosition, wstring filterText)
 {
+	maxLinesInWindow = getCurrentHeight();
+
 	_wsystem(L"cls");
 	COORD drawPosition;
 
@@ -388,6 +390,8 @@ void wconsoleMenu::redrawMenu(vector<pair<wstring, void (*)(wstring&)>>& options
 
 void wconsoleMenu::displayFilteredOptions(wstring& filterText, vector<pair<wstring, void (*)(wstring&)>>& filteredOptions)
 {
+	maxLinesInWindow = getCurrentHeight();
+
 	_wsystem(L"cls");
 	wcout << selectText << filterText;
 
@@ -427,6 +431,11 @@ bool wconsoleMenu::selectController(vector<pair<wstring, void (*)(wstring&)>>& o
 	for (;; Sleep(10))
 	{
 		if (IsIconic(consoleWindow)) continue;
+
+		if (maxLinesInWindow != getCurrentHeight())
+		{
+			drawMenu(options, currentPosition, filterText);
+		}
 
 		if (GetAsyncKeyState(VK_LBUTTON))
 		{

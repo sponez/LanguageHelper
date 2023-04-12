@@ -235,7 +235,8 @@ void openAnswerTest(wstring&)
 	}
 	else
 	{
-		while (true)
+		
+		while (allWords.size() > 0)
 		{
 			wstring word = randomWstring(allWords);
 			if (word.empty())
@@ -270,9 +271,9 @@ void openAnswerTest(wstring&)
 				{
 					MoveFileW(ProgramDirectories::getPathToFile(word, currentLanguage, ProgramDirectories::stages.learned).c_str(),
 						ProgramDirectories::getPathToFile(word, currentLanguage, ProgramDirectories::stages.unlearned).c_str());
-
-					removeElement(word, allWords);
 				}
+
+				removeElement(word, allWords);
 			}
 			else
 			{

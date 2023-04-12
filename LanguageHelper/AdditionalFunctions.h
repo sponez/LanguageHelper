@@ -18,7 +18,7 @@ mt19937 radnomNumber((unsigned int)time(0));
 bool isPathExist(wstring path);
 void wordToLowerCase(wstring& word);
 void capitalizedWord(wstring& word);
-void removeTextInBracket(wstring& string);
+wstring cutTextInBracket(wstring& string);
 void getWords(wstring path, vector<wstring>& emptyList);
 void vectorDifference(vector<wstring>& first, vector<wstring>& second, vector<wstring>& result);
 wstring randomWstring(vector<wstring>& wstringArray);
