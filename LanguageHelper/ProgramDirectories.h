@@ -40,9 +40,24 @@ private:
 		Property correctAnswersToDelete;
 		Property millisecondsToAnswerForCharacter;
 
+		Property windowWidth;
+		Property windowHeight;
+
+		Property fontWeight;
+		Property fontWidth;
+		Property fontHeight;
+
 		vector<Property*> getPropertiesList()
 		{
-			return { &correctAnswersToDelete , &millisecondsToAnswerForCharacter };
+			return {
+				&correctAnswersToDelete ,
+				&millisecondsToAnswerForCharacter ,
+				&windowWidth ,
+				&windowHeight ,
+				&fontWeight ,
+				&fontWidth ,
+				&fontHeight
+			};
 		}
 	};
 

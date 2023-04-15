@@ -57,6 +57,11 @@ void ProgramDirectories::saveDefaulProperties()
 {
 	programProperties.correctAnswersToDelete.value = INT_MAX;
 	programProperties.millisecondsToAnswerForCharacter.value = INT_MAX;
+	programProperties.windowWidth.value = 640;
+	programProperties.windowHeight.value = 480;
+	programProperties.fontWeight.value = 18;
+	programProperties.fontWidth.value = 18;
+	programProperties.fontHeight.value = 18;
 	saveProperties();
 }
 
@@ -64,6 +69,11 @@ void ProgramDirectories::getProperties()
 {
 	programProperties.correctAnswersToDelete.name = L"correctAnswersToDelete";
 	programProperties.millisecondsToAnswerForCharacter.name = L"millisecondsToAnswerForCharacter";
+	programProperties.windowWidth.name = L"windowWidth";
+	programProperties.windowHeight.name = L"windowHeight";
+	programProperties.fontWeight.name = L"fontWeight";
+	programProperties.fontWidth.name = L"fontWidth";
+	programProperties.fontHeight.name = L"fontHeight";
 
 	wifstream propertiesFile(getPathToFile(programFiles.properties));
 	propertiesFile.imbue(std::locale(propertiesFile.getloc(), new codecvt_utf8<wchar_t, 0x10ffff, consume_header>()));

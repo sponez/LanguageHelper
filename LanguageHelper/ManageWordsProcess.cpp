@@ -6,33 +6,6 @@ wstring* currentWordPointer;
 wstring* currentTranslationPointer;
 const size_t MAX_WORD_LENGTH = 255;
 
-void convertWordsFromAnotherLanguage(wstring language)
-{
-	set<pair<wstring, wstring>> correspondences;
-	addAllPairsCorrespondencesToSetFrom(ProgramDirectories::getPathToDirectory(language, ProgramDirectories::stages.unlearned), correspondences);
-	addAllPairsCorrespondencesToSetFrom(ProgramDirectories::getPathToDirectory(ProgramDirectories::reverseLanguage(language), ProgramDirectories::stages.unlearned), correspondences, true);
-	addAllPairsCorrespondencesToSetFrom(ProgramDirectories::getPathToDirectory(ProgramDirectories::reverseLanguage(language), ProgramDirectories::stages.learned), correspondences, true);
-
-	if (!correspondences.empty())
-	{
-		wstring currentWord = correspondences.begin()->first;
-		vector<wstring> translations;
-
-		for (set<pair<wstring, wstring>>::iterator correspondenceIt = correspondences.begin(); correspondenceIt != correspondences.end(); correspondenceIt++)
-		{
-			if (correspondenceIt->first != currentWord)
-			{
-				saveVectorToWfile(ProgramDirectories::getPathToFile(currentWord, language, ProgramDirectories::stages.unlearned), translations);
-				currentWord = correspondenceIt->first;
-				translations.clear();
-			}
-
-			translations.push_back(correspondenceIt->second);
-		}
-		saveVectorToWfile(ProgramDirectories::getPathToFile(currentWord, language, ProgramDirectories::stages.unlearned), translations);
-	}
-}
-
 void getRandomWordsFromLearned(wstring&)
 {
 	int amount;
@@ -264,22 +237,33 @@ void deleteTranslationManual(wstring& word, wstring& wordPath, vector<wstring>& 
 	if (currentStage == ProgramDirectories::stages.unlearned)
 	{
 		vector<wstring> reverseTranslations;
-		wstring reverseWordPath = ProgramDirectories::getPathToFile(translationToDelete, ProgramDirectories::reverseLanguage(currentLanguage), ProgramDirectories::stages.unlearned);
+
+		wstring translationToDeleteWithoutBrackets = wstring(translationToDelete);
+		cutTextInBracket(translationToDeleteWithoutBrackets);
+
+		wstring reverseWordPath = ProgramDirectories::getPathToFile(
+			translationToDeleteWithoutBrackets,
+			ProgramDirectories::reverseLanguage(currentLanguage),
+			ProgramDirectories::stages.unlearned
+		);
 
 		getVectorFromWfile(reverseWordPath, reverseTranslations, true);
 		if (contains(reverseTranslations, word))
 		{
-			wstring question = L"Delete the translation \"" + word + L"\" from the word's \"" + translationToDelete + L"\" translations?";
+			wstring question = L"Delete the translation \"" + word + L"\" from the word's \"" + translationToDeleteWithoutBrackets + L"\" translations?";
 			if (askQuestion(question))
 			{
 				removeElement(word, reverseTranslations);
-				if (!reverseTranslations.empty()) { saveVectorToWfile(reverseWordPath, reverseTranslations); }
+				if (!reverseTranslations.empty())
+				{
+					saveVectorToWfile(reverseWordPath, reverseTranslations);
+				}
 				else
 				{
-					wcout << L"Translations for the word \"" << translationToDelete << L"\" didn't remain. It will be deleted." << endl;
+					wcout << L"Translations for the word \"" << translationToDeleteWithoutBrackets << L"\" didn't remain. It will be deleted." << endl;
 					_wsystem(L"pause");
 					_wremove(reverseWordPath.c_str());
-					ProgramDirectories::removeWordFromProgramFiles(translationToDelete, ProgramDirectories::reverseLanguage(currentLanguage));
+					ProgramDirectories::removeWordFromProgramFiles(translationToDeleteWithoutBrackets, ProgramDirectories::reverseLanguage(currentLanguage));
 				}
 			}
 		}
@@ -293,11 +277,23 @@ void deleteWordFunction(wstring&)
 {
 	wstring wordPath = ProgramDirectories::getPathToFile(*currentWordPointer, currentLanguage, currentStage);
 	vector<wstring> translations;
-	getVectorFromWfile(wordPath, translations, true);
+	getVectorFromWfile(wordPath, translations);
 
-	while (!translations.empty()) { deleteTranslationManual(*currentWordPointer, wordPath, translations, translations.front()); }
+	while (!translations.empty())
+	{
+		deleteTranslationManual(
+			*currentWordPointer,
+			wordPath,
+			translations,
+			translations.front()
+		);
+	}
+
 	_wremove(ProgramDirectories::getPathToFile(*currentWordPointer, currentLanguage, currentStage).c_str());
-	if (currentStage == ProgramDirectories::stages.unlearned) { ProgramDirectories::removeWordFromProgramFiles(*currentWordPointer, currentLanguage); }
+	if (currentStage == ProgramDirectories::stages.unlearned)
+	{
+		ProgramDirectories::removeWordFromProgramFiles(*currentWordPointer, currentLanguage);
+	}
 
 	wcout << "Done!" << endl;
 	_wsystem(L"pause");
@@ -305,8 +301,19 @@ void deleteWordFunction(wstring&)
 
 void moveToUnlearned(wstring&)
 {
-	MoveFileW(ProgramDirectories::getPathToFile(*currentWordPointer, currentLanguage, ProgramDirectories::stages.learned).c_str(),
-		ProgramDirectories::getPathToFile(*currentWordPointer, currentLanguage, ProgramDirectories::stages.unlearned).c_str());
+	MoveFileW(
+		ProgramDirectories::getPathToFile(
+			*currentWordPointer,
+			currentLanguage,
+			ProgramDirectories::stages.learned
+		).c_str(),
+
+		ProgramDirectories::getPathToFile(
+			*currentWordPointer,
+			currentLanguage,
+			ProgramDirectories::stages.unlearned
+		).c_str()
+	);
 
 	wcout << "Done!" << endl;
 	_wsystem(L"pause");

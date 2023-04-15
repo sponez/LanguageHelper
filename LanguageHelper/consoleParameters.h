@@ -1,5 +1,6 @@
 #pragma once
 #define NOMINMAX
+#define _WIN32_WINNT 0x0500
 #include <windows.h>
 
 class consoleParameters
@@ -16,13 +17,15 @@ public:
 	static void onCursor();
 	static void offCursor();
 	static void GetConsoleCursorPosition();
-	static unsigned short getCurrentHeight();
 };
 
 consoleParameters::consoleParameters()
 {
 	consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+
 	consoleWindow = GetConsoleWindow();
+	SetWindowLongW(consoleWindow, GWL_STYLE, GetWindowLong(consoleWindow, GWL_STYLE) & ~WS_MAXIMIZEBOX & ~WS_SIZEBOX);
+
 	GetWindowRect(consoleWindow, &consoleWindowCoordinates);
 	GetConsoleCursorInfo(consoleHandle, &structCursorInfo);
 	cursorPosition.X = 0;
@@ -52,10 +55,4 @@ void consoleParameters::GetConsoleCursorPosition()
 	{
 		cursorPosition = { 0, 0 };
 	}
-}
-
-unsigned short consoleParameters::getCurrentHeight()
-{
-	GetWindowRect(consoleWindow, &consoleWindowCoordinates);
-	return (consoleWindowCoordinates.bottom - consoleWindowCoordinates.top) / 16;
 }

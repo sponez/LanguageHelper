@@ -2,6 +2,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <array>
 #include <map>
 #include <algorithm>
 #include <conio.h>
@@ -14,6 +15,11 @@ static const int BACKGROUND_BLACK = FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGRO
 
 class wconsoleMenu : consoleParameters
 {
+	inline static bool needInitializeWindowParameters = true;
+	inline static COORD windowSize;
+	inline static CONSOLE_FONT_INFOEX fontInfo;
+	inline static unsigned short numberOfOptionsOnPage = 10;
+
 	wstring selectText{};
 	wstring exitText{};
 	bool isSelectTextEmpty{};
@@ -28,14 +34,14 @@ class wconsoleMenu : consoleParameters
 	void setPosition(short&, vector<pair<wstring, void (*)(wstring&)>>&);
 
 public:
-	inline static unsigned short maxLinesInWindow = getCurrentHeight();
-
 	//Initializers
 	wconsoleMenu() {}; //Empty console menu
 	wconsoleMenu(vector<wstring>&, wstring, wstring); //Console menu without functions
 	wconsoleMenu(vector<wstring>&, vector<void (*)(wstring&)>&, wstring, wstring); //Console menu with different functions
 
 	//Other public functions
+	static void setWindowSize(unsigned short newNumberOfColumns, unsigned short newNumberOfLines);
+	static void setFontInfo(unsigned short fontWeight, unsigned short fontWidth, unsigned short fontHeight);
 	static void consoleWstringEditor(wstring& string);
 	static bool consoleWstringEditor(wstring& string, double millisecondsToEdit);
 	static vector<wstring> wstringSplitter(wstring&, wstring);
@@ -51,6 +57,30 @@ public:
 	void cyclicSelectWithFilter(short&, wstring&, bool);
 	void cyclicSelectWithFilter();
 };
+
+void wconsoleMenu::setFontInfo(unsigned short fontWeight, unsigned short fontWidth, unsigned short fontHeight)
+{
+	fontInfo.FontWeight = fontWeight;
+	fontInfo.dwFontSize.X = fontWidth;
+	fontInfo.dwFontSize.Y = fontHeight;
+	SetCurrentConsoleFontEx(consoleHandle, NULL, &fontInfo);
+}
+
+void wconsoleMenu::setWindowSize(unsigned short width, unsigned short height)
+{
+	windowSize.X = width;
+	windowSize.Y = height;
+	numberOfOptionsOnPage = height / fontInfo.dwFontSize.Y;
+	
+	MoveWindow(
+		consoleWindow,
+		consoleWindowCoordinates.left,
+		consoleWindowCoordinates.top,
+		windowSize.X,
+		windowSize.Y,
+		TRUE
+	);
+}
 
 inline bool wconsoleMenu::consoleWstringEditor(wstring& str, double millisecondsToEdit)
 {
@@ -281,6 +311,17 @@ wconsoleMenu::wconsoleMenu(vector<wstring>& optionNames, wstring selectText = L"
 
 	for (unsigned short i = 0; i < optionNames.size(); i++)
 		options.push_back(pair<wstring, void (*)(wstring&)>(optionNames[i], [](wstring&) {}));
+
+	if (needInitializeWindowParameters)
+	{
+		fontInfo.cbSize = sizeof(CONSOLE_FONT_INFOEX);
+		GetCurrentConsoleFontEx(consoleHandle, 0, &fontInfo);
+		windowSize.X = consoleWindowCoordinates.right - consoleWindowCoordinates.left;
+		windowSize.Y = consoleWindowCoordinates.bottom - consoleWindowCoordinates.top;
+		numberOfOptionsOnPage = windowSize.Y / fontInfo.dwFontSize.Y;
+
+		needInitializeWindowParameters = false;
+	}
 }
 
 wconsoleMenu::wconsoleMenu(vector<wstring>& optionNames, vector<void (*)(wstring&)>& optionFunctions, wstring selectText = L"", wstring exitText = L"")
@@ -311,12 +352,21 @@ wconsoleMenu::wconsoleMenu(vector<wstring>& optionNames, vector<void (*)(wstring
 
 	for (unsigned short i = 0; i < optionNames.size(); i++)
 		options.push_back(pair<wstring, void (*)(wstring&)>(optionNames[i], optionFunctions[i]));
+
+	if (needInitializeWindowParameters)
+	{
+		fontInfo.cbSize = sizeof(CONSOLE_FONT_INFOEX);
+		GetCurrentConsoleFontEx(consoleHandle, 0, &fontInfo);
+		windowSize.X = consoleWindowCoordinates.right - consoleWindowCoordinates.left;
+		windowSize.Y = consoleWindowCoordinates.bottom - consoleWindowCoordinates.top;
+		numberOfOptionsOnPage = windowSize.Y / fontInfo.dwFontSize.Y;
+
+		needInitializeWindowParameters = false;
+	}
 }
 
 void wconsoleMenu::drawMenu(vector<pair<wstring, void (*)(wstring&)>>& options, short currentPosition, wstring filterText)
 {
-	maxLinesInWindow = getCurrentHeight();
-
 	_wsystem(L"cls");
 	COORD drawPosition;
 
@@ -327,7 +377,7 @@ void wconsoleMenu::drawMenu(vector<pair<wstring, void (*)(wstring&)>>& options, 
 	}
 
 	drawPosition.X = 2;
-	if (options.size() <= 2 * maxLinesInWindow)
+	if (options.size() <= 2 * numberOfOptionsOnPage)
 	{
 		for (unsigned short i = 0; i < options.size(); i++)
 		{
@@ -340,21 +390,21 @@ void wconsoleMenu::drawMenu(vector<pair<wstring, void (*)(wstring&)>>& options, 
 	}
 	else
 	{
-		for (unsigned short i = 0; i < maxLinesInWindow && i < currentPosition; i++)
+		for (unsigned short i = 0; i < numberOfOptionsOnPage && i < currentPosition; i++)
 		{
 			drawPosition.Y = (short)!isSelectTextEmpty + i;
 			SetConsoleCursorPosition(consoleHandle, drawPosition);
 			wcout << options[i].first;
 		}
 
-		for (unsigned short i = currentPosition + 1; i < currentPosition + maxLinesInWindow && i < options.size(); i++)
+		for (unsigned short i = currentPosition + 1; i < currentPosition + numberOfOptionsOnPage && i < options.size(); i++)
 		{
 			drawPosition.Y = (short)!isSelectTextEmpty + i;
 			SetConsoleCursorPosition(consoleHandle, drawPosition);
 			wcout << options[i].first;
 		}
 
-		for (unsigned short i = options.size() - 1; i > options.size() - maxLinesInWindow - 1; i--)
+		for (unsigned short i = options.size() - 1; i > options.size() - numberOfOptionsOnPage - 1; i--)
 		{
 			drawPosition.Y = (short)!isSelectTextEmpty + i;
 			SetConsoleCursorPosition(consoleHandle, drawPosition);
@@ -390,8 +440,6 @@ void wconsoleMenu::redrawMenu(vector<pair<wstring, void (*)(wstring&)>>& options
 
 void wconsoleMenu::displayFilteredOptions(wstring& filterText, vector<pair<wstring, void (*)(wstring&)>>& filteredOptions)
 {
-	maxLinesInWindow = getCurrentHeight();
-
 	_wsystem(L"cls");
 	wcout << selectText << filterText;
 
@@ -399,7 +447,7 @@ void wconsoleMenu::displayFilteredOptions(wstring& filterText, vector<pair<wstri
 	drawPosition.X = 2;
 	if (filteredOptions.size() > 0)
 	{
-		for (int i = 0; i < filteredOptions.size() && i < (maxLinesInWindow - 1); i++)
+		for (int i = 0; i < filteredOptions.size() && i < (numberOfOptionsOnPage - 1); i++)
 		{
 			drawPosition.Y = 1 + i;
 			SetConsoleCursorPosition(consoleHandle, drawPosition);
@@ -431,11 +479,6 @@ bool wconsoleMenu::selectController(vector<pair<wstring, void (*)(wstring&)>>& o
 	for (;; Sleep(10))
 	{
 		if (IsIconic(consoleWindow)) continue;
-
-		if (maxLinesInWindow != getCurrentHeight())
-		{
-			drawMenu(options, currentPosition, filterText);
-		}
 
 		if (GetAsyncKeyState(VK_LBUTTON))
 		{

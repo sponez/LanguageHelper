@@ -18,18 +18,17 @@ int main(int argc, char* argv[])
 		wstring exitText = L"Close application";
 		wconsoleMenu languageHelperMenu(options, functions, selectText, exitText);
 
-		languageHelperMenu.cyclicSelect();
-	}
-	else if (argc == 2 && !strcmp(argv[1], "convert"))
-	{
-		vector<wstring> options = { ProgramDirectories::languages.native , ProgramDirectories::languages.target };
-		wstring selectText = L"Select a sourse language:";
-		wconsoleMenu languageHelperMenu(options, selectText);
-		short optionNum = 0;
+		wconsoleMenu::setFontInfo(
+			ProgramDirectories::programProperties.fontWeight.value,
+			ProgramDirectories::programProperties.fontWidth.value,
+			ProgramDirectories::programProperties.fontHeight.value
+		);
+		wconsoleMenu::setWindowSize(
+			ProgramDirectories::programProperties.windowWidth.value,
+			ProgramDirectories::programProperties.windowHeight.value
+		);
 
-		languageHelperMenu.singleSelect(optionNum);
-		if (optionNum == 0) { convertWordsFromAnotherLanguage(ProgramDirectories::languages.target); }
-		else { convertWordsFromAnotherLanguage(ProgramDirectories::languages.native); }
+		languageHelperMenu.cyclicSelect();
 	}
 	else
 	{
