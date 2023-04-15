@@ -63,7 +63,20 @@ void wconsoleMenu::setFontInfo(unsigned short fontWeight, unsigned short fontWid
 	fontInfo.FontWeight = fontWeight;
 	fontInfo.dwFontSize.X = fontWidth;
 	fontInfo.dwFontSize.Y = fontHeight;
-	SetCurrentConsoleFontEx(consoleHandle, NULL, &fontInfo);
+
+	SetCurrentConsoleFontEx(
+		consoleHandle,
+		NULL,
+		&fontInfo
+	);
+	MoveWindow(
+		consoleWindow,
+		consoleWindowCoordinates.left,
+		consoleWindowCoordinates.top,
+		windowSize.X,
+		windowSize.Y,
+		TRUE
+	);
 }
 
 void wconsoleMenu::setWindowSize(unsigned short width, unsigned short height)
