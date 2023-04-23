@@ -69,6 +69,8 @@ void wconsoleMenu::setFontInfo(unsigned short fontWeight, unsigned short fontWid
 		NULL,
 		&fontInfo
 	);
+
+	numberOfOptionsOnPage = windowSize.Y / fontInfo.dwFontSize.Y;
 	MoveWindow(
 		consoleWindow,
 		consoleWindowCoordinates.left,
