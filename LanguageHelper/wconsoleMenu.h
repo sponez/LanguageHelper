@@ -19,25 +19,40 @@ class wconsoleMenu : consoleParameters
 	inline static COORD windowSize;
 	inline static CONSOLE_FONT_INFOEX fontInfo;
 	inline static unsigned short numberOfOptionsOnPage = 10;
+	inline static bool exitToMainMenu = false;
 
 	wstring selectText{};
 	wstring exitText{};
 	bool isSelectTextEmpty{};
 	bool isExitTextEmpty{};
+	bool mainMenuFlag = false;
 	vector<pair<wstring, void (*)(wstring&)>> options{};
 
 	void drawMenu(vector<pair<wstring, void (*)(wstring&)>>&, short, wstring); //Draw all options
 	void redrawMenu(vector<pair<wstring, void (*)(wstring&)>>&, short, short); //Redraw changed options
 	bool selectController(vector<pair<wstring, void (*)(wstring&)>>&, short&, wstring); //Controller for menu
-	void displayFilteredOptions(wstring&, vector<pair<wstring, void (*)(wstring&)>>&); //If use select with filter, this is necessary to display the sutable options
+	void displayFilteredOptions(wstring&, vector<pair<wstring, void (*)(wstring&)>>&); //If use select with filter, this is necessary to display sutable options
 	vector<pair<wstring, void (*)(wstring&)>> optionsFilterer(wstring&, vector<short>&); //If use select with filter, this is necessary to filter options by characters
 	void setPosition(short&, vector<pair<wstring, void (*)(wstring&)>>&);
 
 public:
 	//Initializers
 	wconsoleMenu() {}; //Empty console menu
-	wconsoleMenu(vector<wstring>&, wstring, wstring); //Console menu without functions
-	wconsoleMenu(vector<wstring>&, vector<void (*)(wstring&)>&, wstring, wstring); //Console menu with different functions
+
+	wconsoleMenu(
+		vector<wstring>& optionNames,
+		wstring selectText,
+		wstring exitText
+	); //Console menu without functions
+
+	wconsoleMenu(
+		vector<wstring>& optionNames,
+		vector<void (*)(wstring&)>& optionFunctions,
+		wstring selectText,
+		wstring exitText
+	); //Console menu with different functions
+
+	void setMainMenuFlag();
 
 	//Other public functions
 	static void setWindowSize(unsigned short newNumberOfColumns, unsigned short newNumberOfLines);
@@ -380,6 +395,11 @@ wconsoleMenu::wconsoleMenu(vector<wstring>& optionNames, vector<void (*)(wstring
 	}
 }
 
+void wconsoleMenu::setMainMenuFlag()
+{
+	mainMenuFlag = true;
+}
+
 void wconsoleMenu::drawMenu(vector<pair<wstring, void (*)(wstring&)>>& options, short currentPosition, wstring filterText)
 {
 	_wsystem(L"cls");
@@ -482,6 +502,19 @@ void wconsoleMenu::displayFilteredOptions(wstring& filterText, vector<pair<wstri
 bool wconsoleMenu::selectController(vector<pair<wstring, void (*)(wstring&)>>& options, short& currentPosition, wstring filterText = L"")
 {
 	FlushConsoleInputBuffer(consoleHandle);
+
+	if (exitToMainMenu)
+	{
+		if (mainMenuFlag)
+		{
+			exitToMainMenu = false;
+		}
+		else
+		{
+			return false;
+		}
+	}
+
 	offCursor();
 
 	drawMenu(options, currentPosition, filterText);
@@ -535,7 +568,7 @@ bool wconsoleMenu::selectController(vector<pair<wstring, void (*)(wstring&)>>& o
 			return true;
 		}
 
-		if (GetAsyncKeyState(VK_BACK) || GetAsyncKeyState(VK_ESCAPE))
+		if (GetAsyncKeyState(VK_BACK))
 		{
 			while (_kbhit()) ignore = _getwch();
 
@@ -544,7 +577,21 @@ bool wconsoleMenu::selectController(vector<pair<wstring, void (*)(wstring&)>>& o
 
 			return false;
 		}
+
+		if (GetAsyncKeyState(VK_ESCAPE))
+		{
+			while (_kbhit()) ignore = _getwch();
+
+			onCursor();
+			_wsystem(L"cls");
+
+			exitToMainMenu = true;
+
+			return false;
+		}
 	}
+
+	return false;
 }
 
 void wconsoleMenu::setPosition(short& position, vector<pair<wstring, void (*)(wstring&)>>& options)
@@ -611,7 +658,9 @@ void wconsoleMenu::cyclicSelect(short& position)
 	do
 	{
 		if (selectController(options, position))
+		{
 			options[position].second(options[position].first);
+		}
 		else
 		{
 			position = -1;
@@ -698,29 +747,47 @@ void wconsoleMenu::singleSelectWithFilter(short& position, wstring& filterText, 
 		for (int i = 0; i < listOfRealOptionsNumbers.size(); i++)
 		{
 			if (position == listOfRealOptionsNumbers[i])
+			{
 				positionInFilteredList = i;
+			}
 		}
 
 		if (selectController(filteredOptions, positionInFilteredList, filterText))
 		{
 			if (!isExitTextEmpty && positionInFilteredList == filteredOptions.size() - 1)
+			{
 				position = -1;
+			}
 			else
+			{
 				position = listOfRealOptionsNumbers[positionInFilteredList];
+			}
 
 			filteredOptions[positionInFilteredList].second(filteredOptions[positionInFilteredList].first);
 
 			if (!isExitTextEmpty)
+			{
 				filteredOptions.pop_back();
+			}
 
 			return;
 		}
 		else
 		{
-			if (!isExitTextEmpty && positionInFilteredList == filteredOptions.size() - 1)
+			if (exitToMainMenu)
+			{
 				position = -1;
+				return;
+			}
+
+			if (!isExitTextEmpty && positionInFilteredList == filteredOptions.size() - 1)
+			{
+				position = -1;
+			}
 			else
+			{
 				position = listOfRealOptionsNumbers[positionInFilteredList];
+			}
 
 			displayFilteredOptions(filterText, filteredOptions);
 		}
@@ -764,23 +831,39 @@ void wconsoleMenu::singleSelectWithFilter(short& position, wstring& filterText, 
 				if (selectController(filteredOptions, positionInFilteredList, filterText))
 				{
 					if (!isExitTextEmpty && positionInFilteredList == filteredOptions.size() - 1)
+					{
 						position = -1;
+					}
 					else
+					{
 						position = listOfRealOptionsNumbers[positionInFilteredList];
+					}
 
 					filteredOptions[positionInFilteredList].second(filteredOptions[positionInFilteredList].first);
 
 					if (!isExitTextEmpty)
+					{
 						filteredOptions.pop_back();
+					}
 
 					return;
 				}
 				else
 				{
-					if (!isExitTextEmpty && positionInFilteredList == filteredOptions.size() - 1)
+					if (exitToMainMenu)
+					{
 						position = -1;
+						return;
+					}
+
+					if (!isExitTextEmpty && positionInFilteredList == filteredOptions.size() - 1)
+					{
+						position = -1;
+					}
 					else
+					{
 						position = listOfRealOptionsNumbers[positionInFilteredList];
+					}
 
 					displayFilteredOptions(filterText, filteredOptions);
 					continue;
@@ -866,7 +949,9 @@ void wconsoleMenu::cyclicSelectWithFilter(short& position, wstring& filterText, 
 		for (int i = 0; i < listOfRealOptionsNumbers.size(); i++)
 		{
 			if (position == listOfRealOptionsNumbers[i])
+			{
 				positionInFilteredList = i;
+			}
 		}
 
 		do
@@ -876,13 +961,26 @@ void wconsoleMenu::cyclicSelectWithFilter(short& position, wstring& filterText, 
 				filteredOptions[positionInFilteredList].second(filteredOptions[positionInFilteredList].first);
 			}
 			else
+			{
+				if (exitToMainMenu)
+				{
+					position = -1;
+					return;
+				}
+
 				break;
+			}
 		} while (isExitTextEmpty || positionInFilteredList != filteredOptions.size() - 1);
 
 		if (!isExitTextEmpty && positionInFilteredList == filteredOptions.size() - 1)
+		{
 			position = -1;
+		}
 		else
+		{
 			position = listOfRealOptionsNumbers[positionInFilteredList];
+		}
+
 		displayFilteredOptions(filterText, filteredOptions);
 	}
 
@@ -918,7 +1016,9 @@ void wconsoleMenu::cyclicSelectWithFilter(short& position, wstring& filterText, 
 				for (int i = 0; i < listOfRealOptionsNumbers.size(); i++)
 				{
 					if (position == listOfRealOptionsNumbers[i])
+					{
 						positionInFilteredList = i;
+					}
 				}
 
 				do
@@ -926,14 +1026,26 @@ void wconsoleMenu::cyclicSelectWithFilter(short& position, wstring& filterText, 
 					if (selectController(filteredOptions, positionInFilteredList, filterText))
 					{
 						if (!isExitTextEmpty && positionInFilteredList == filteredOptions.size() - 1)
+						{
 							position = -1;
+						}
 						else
+						{
 							position = listOfRealOptionsNumbers[positionInFilteredList];
+						}
 
 						filteredOptions[positionInFilteredList].second(filteredOptions[positionInFilteredList].first);
 					}
 					else
+					{
+						if (exitToMainMenu)
+						{
+							position = -1;
+							return;
+						}
+
 						break;
+					}
 				} while (isExitTextEmpty || positionInFilteredList != filteredOptions.size() - 1);
 
 				position = listOfRealOptionsNumbers[0];

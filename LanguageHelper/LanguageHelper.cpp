@@ -17,6 +17,7 @@ int main(int argc, char* argv[])
 		wstring selectText = L"Select an action";
 		wstring exitText = L"Close application";
 		wconsoleMenu languageHelperMenu(options, functions, selectText, exitText);
+		languageHelperMenu.setMainMenuFlag();
 
 		wconsoleMenu::setFontInfo(
 			ProgramDirectories::programProperties.fontWeight.value,
