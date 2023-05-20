@@ -135,23 +135,56 @@ void openAnswerTest(wstring&)
 		getMapFromWfile(ProgramDirectories::getPathToFile(ProgramDirectories::programFiles.successSave, currentLanguage), overallCorrectAnswers);
 		getVectorFromWfile(ProgramDirectories::getPathToFile(ProgramDirectories::programFiles.usedWords, currentLanguage), usedWords);
 		vectorDifference(allWords, usedWords, unusedWords);
-		while (true)
+		for (int i = usedWords.size() - 1;; ++i)
 		{
-			wstring word = randomWstring(unusedWords);
-			if (word.empty())
+			if (i >= allWords.size())
 			{
-				wcout << L"Words are run out!" << endl;
-				_wsystem(L"pause");
-				_wsystem(L"cls");
-				break;
+				if (ProgramDirectories::programProperties.endlessTesting.value)
+				{
+					i = 0;
+				}
+				else
+				{
+					wcout << L"You have passed all words! ";
+					if (ProgramDirectories::programProperties.randomTesting.value)
+					{
+						wcout << L"Start again to shuffle the words." << endl;
+					}
+					else
+					{
+						wcout << L"Start again to return to the first word." << endl;
+					}
+
+					_wsystem(L"pause");
+					_wsystem(L"cls");
+					break;
+				}
 			}
 
-			transmitElement(word, unusedWords, usedWords);
-			if (!usedWords.empty() && usedWords.size() >= unusedWords.size())
+			wstring word;
+			if (ProgramDirectories::programProperties.randomTesting.value)
 			{
-				unusedWords.push_back(usedWords.front());
-				usedWords.erase(usedWords.begin());
+				word = randomWstring(unusedWords);
+
+				if (word.empty())
+				{
+					wcout << L"Words are run out!" << endl;
+					_wsystem(L"pause");
+					_wsystem(L"cls");
+					break;
+				}
 			}
+			else
+			{
+				word = unusedWords[0];
+			}
+
+			if (unusedWords.empty())
+			{
+				unusedWords = vector<wstring>(usedWords);
+				usedWords.clear();
+			}
+			transmitElement(word, unusedWords, usedWords);
 
 			vector<wstring> translations;
 			getVectorFromWfile(ProgramDirectories::getPathToFile(word, currentLanguage, currentStage), translations, true);
@@ -172,7 +205,10 @@ void openAnswerTest(wstring&)
 			wstring answer;
 			if (wconsoleMenu::consoleWstringEditor(answer, findTimeToAnswer(translations)))
 			{
-				if (answer.empty()) { break; }
+				if (answer.empty())
+				{
+					break;
+				}
 				wordToLowerCase(answer);
 
 				amountOfRepeats++;
@@ -191,7 +227,10 @@ void openAnswerTest(wstring&)
 						overallCorrectAnswers.erase(word);
 					}
 				}
-				else { overallCorrectAnswers[word] = 0; }
+				else
+				{
+					overallCorrectAnswers[word] = 0;
+				}
 			}
 			else
 			{
@@ -299,7 +338,7 @@ void testingType(wstring& stage)
 
 	if (currentStage == ProgramDirectories::stages.unlearned)
 	{
-		vector<wstring> testingTypes = { L"Randomised test" , L"Work on mistakes" };
+		vector<wstring> testingTypes = { L"Open answer test" , L"Work on mistakes" };
 		vector<void (*)(wstring&)> functions = { openAnswerTest , workOnMistakes };
 		wstring selectText = L"Select a type of test";
 		wstring exitText = L"Back";

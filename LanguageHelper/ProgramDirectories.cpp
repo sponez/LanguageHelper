@@ -57,6 +57,8 @@ void ProgramDirectories::saveDefaulProperties()
 {
 	programProperties.correctAnswersToDelete.value = INT_MAX;
 	programProperties.millisecondsToAnswerForCharacter.value = INT_MAX;
+	programProperties.endlessTesting.value = 0;
+	programProperties.randomTesting.value = 0;
 	programProperties.windowWidth.value = 640;
 	programProperties.windowHeight.value = 480;
 	programProperties.fontWeight.value = 18;
@@ -69,6 +71,8 @@ void ProgramDirectories::getProperties()
 {
 	programProperties.correctAnswersToDelete.name = L"correctAnswersToDelete";
 	programProperties.millisecondsToAnswerForCharacter.name = L"millisecondsToAnswerForCharacter";
+	programProperties.endlessTesting.name = L"endlessTesting";
+	programProperties.randomTesting.name = L"randomTesting";
 	programProperties.windowWidth.name = L"windowWidth";
 	programProperties.windowHeight.name = L"windowHeight";
 	programProperties.fontWeight.name = L"fontWeight";

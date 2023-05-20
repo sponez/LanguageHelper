@@ -101,7 +101,6 @@ void addTranslationsManual(wstring& word, wstring& wordPath, vector<wstring>& tr
 	while (true)
 	{
 		wstring translation;
-		wstring translationWhithoutBrackets;
 		wstring textInBrackets;
 
 		wcout << L"Leave empty to exit." << endl;
@@ -115,24 +114,32 @@ void addTranslationsManual(wstring& word, wstring& wordPath, vector<wstring>& tr
 		}
 
 		wordToLowerCase(translation);
-		translationWhithoutBrackets = wstring(translation);
-		textInBrackets = cutTextInBracket(translationWhithoutBrackets);
+		textInBrackets = cutTextInBracket(translation);
 
-		if (!contains(translationsWithoutBrackets, translationWhithoutBrackets))
+		if (!contains(translationsWithoutBrackets, translation))
 		{
-			translationsWithoutBrackets.push_back(translationWhithoutBrackets);
-			translations.push_back(translation);
+			translationsWithoutBrackets.push_back(translation);
+			translations.push_back(standartTranslationForm(translation, textInBrackets));
 
-			if (translationWhithoutBrackets.size() <= MAX_WORD_LENGTH)
+			if (translation.length() <= MAX_WORD_LENGTH)
 			{
 				wstring reverseWordPath;
 				vector<wstring> reverseTranslations;
 				vector<wstring> reverseTranslationsWithoutBrackets;
 
-				reverseWordPath = ProgramDirectories::getPathToFile(translationWhithoutBrackets, ProgramDirectories::reverseLanguage(currentLanguage), ProgramDirectories::stages.learned);
+				reverseWordPath = ProgramDirectories::getPathToFile(
+					translation,
+					ProgramDirectories::reverseLanguage(currentLanguage),
+					ProgramDirectories::stages.learned
+				);
+
 				if (!isPathExist(reverseWordPath))
 				{
-					reverseWordPath = ProgramDirectories::getPathToFile(translationWhithoutBrackets, ProgramDirectories::reverseLanguage(currentLanguage), ProgramDirectories::stages.unlearned);
+					reverseWordPath = ProgramDirectories::getPathToFile(
+						translation,
+						ProgramDirectories::reverseLanguage(currentLanguage),
+						ProgramDirectories::stages.unlearned
+					);
 				}
 
 				getVectorFromWfile(reverseWordPath, reverseTranslations);
@@ -140,15 +147,17 @@ void addTranslationsManual(wstring& word, wstring& wordPath, vector<wstring>& tr
 
 				if (!contains(reverseTranslationsWithoutBrackets, word))
 				{
-					wstring question = L"Add translation \"" + word + L"\" into the word \"" + translationWhithoutBrackets + L"\"?";
+					wstring question = L"Add translation \"" + word + L"\" into the word \"" + translation + L"\"?";
 					if (askQuestion(question))
 					{
-						wstring newReverseTranslation = wstring(word);
+						wstring newReverseTranslation;
 						if (textInBrackets.length() > 0 && askQuestion(L"Add brackets with text \"" + textInBrackets + L"\"?"))
 						{
-							newReverseTranslation += L" (";
-							newReverseTranslation += textInBrackets;
-							newReverseTranslation += L')';
+							newReverseTranslation = standartTranslationForm(word, textInBrackets);
+						}
+						else
+						{
+							newReverseTranslation = wstring(word);
 						}
 
 						reverseTranslations.push_back(newReverseTranslation);
@@ -346,8 +355,12 @@ void translationEditorFunction(wstring& optionName)
 		if (optionName == L"Edit")
 		{
 			vector<wstring> reverseTranslations;
+			vector<wstring> reverseTranslationsWithoutBrackets;
 			wstring reverseWordPath;
+
 			wstring oldTranslation = wstring(*currentTranslationPointer);
+			wstring oldTextInBracket = cutTextInBracket(oldTranslation);
+
 			bool didWordExistInTranslation = false;
 
 			vector<wstring>::iterator currentTranslateIt = find(translations.begin(), translations.end(), *currentTranslationPointer);
@@ -356,58 +369,118 @@ void translationEditorFunction(wstring& optionName)
 			wcout << L"Edit: ";
 			wconsoleMenu::consoleWstringEditor(*currentTranslationPointer);
 
-			if (*currentTranslationPointer == oldTranslation) { return; }
-			if (currentTranslationPointer->empty())
+			wstring newTranslation = wstring(*currentTranslationPointer);
+			wstring newTextInBracket = cutTextInBracket(newTranslation);
+
+			if (newTranslation == oldTranslation && newTextInBracket == oldTextInBracket)
+			{
+				*currentTranslationPointer = standartTranslationForm(oldTranslation, oldTextInBracket);
+				return;
+			}
+
+			if (newTranslation.empty())
 			{
 				wcout << L"Translation can not be empty" << endl;
 				_wsystem(L"pause");
 
-				*currentTranslationPointer = oldTranslation;
+				*currentTranslationPointer = standartTranslationForm(oldTranslation, oldTextInBracket);
 				return;
 			}
 
 			translations.erase(currentTranslateIt);
 
-			cutTextInBracket(oldTranslation);
-			reverseWordPath = ProgramDirectories::getPathToFile(oldTranslation, ProgramDirectories::reverseLanguage(currentLanguage), ProgramDirectories::stages.unlearned);
-			getVectorFromWfile(reverseWordPath, reverseTranslations, true);
-			if (!reverseTranslations.empty() && contains(reverseTranslations, *currentWordPointer))
-			{
-				didWordExistInTranslation = true;
-				removeElement(*currentWordPointer, reverseTranslations);
+			reverseWordPath = ProgramDirectories::getPathToFile(
+				oldTranslation,
+				ProgramDirectories::reverseLanguage(currentLanguage),
+				ProgramDirectories::stages.unlearned
+			);
 
-				if (!reverseTranslations.empty()) { saveVectorToWfile(reverseWordPath, reverseTranslations); }
+			getVectorFromWfile(reverseWordPath, reverseTranslations);
+			getVectorFromWfile(reverseWordPath, reverseTranslationsWithoutBrackets, true);
+
+			if (!reverseTranslationsWithoutBrackets.empty() && contains(reverseTranslationsWithoutBrackets, *currentWordPointer))
+			{
+				wstring oldReverseTranslation = standartTranslationForm(*currentWordPointer, oldTextInBracket);
+
+				didWordExistInTranslation = true;
+				removeElement(oldReverseTranslation, reverseTranslations);
+
+				if (!reverseTranslations.empty())
+				{
+					saveVectorToWfile(reverseWordPath, reverseTranslations);
+				}
 				else
 				{
 					_wremove(reverseWordPath.c_str());
 					if (currentStage == ProgramDirectories::stages.unlearned)
 					{
-						ProgramDirectories::removeWordFromProgramFiles(oldTranslation, ProgramDirectories::reverseLanguage(currentLanguage));
+						ProgramDirectories::removeWordFromProgramFiles(
+							oldTranslation,
+							ProgramDirectories::reverseLanguage(currentLanguage)
+						);
 					}
 				}
 
 				reverseTranslations.clear();
+				reverseTranslationsWithoutBrackets.clear();
 			}
 			reverseWordPath.clear();
 
-			wstring newTranslation = wstring(*currentTranslationPointer);
-			wstring newTranslationWithoutBracket = wstring(*currentTranslationPointer);
-			cutTextInBracket(newTranslationWithoutBracket);
-
 			if (!contains(translations, newTranslation))
 			{
-				translations.insert(currentTranslateIt , newTranslation);
+				translations.insert(currentTranslateIt, standartTranslationForm(newTranslation, newTextInBracket));
 				saveVectorToWfile(wordPath, translations);
 
-				if (didWordExistInTranslation && newTranslationWithoutBracket.length() < MAX_WORD_LENGTH)
+				if (didWordExistInTranslation && newTranslation.length() < MAX_WORD_LENGTH)
 				{
-					reverseWordPath = ProgramDirectories::getPathToFile(newTranslationWithoutBracket, ProgramDirectories::reverseLanguage(currentLanguage), ProgramDirectories::stages.unlearned);
-					getVectorFromWfile(reverseWordPath, reverseTranslations, true);
+					reverseWordPath = ProgramDirectories::getPathToFile(
+						newTranslation,
+						ProgramDirectories::reverseLanguage(currentLanguage),
+						ProgramDirectories::stages.unlearned
+					);
 
-					if (!contains(reverseTranslations, *currentWordPointer))
+					getVectorFromWfile(reverseWordPath, reverseTranslations);
+					getVectorFromWfile(reverseWordPath, reverseTranslationsWithoutBrackets, true);
+
+					if (!contains(reverseTranslationsWithoutBrackets, *currentWordPointer))
 					{
-						reverseTranslations.push_back(*currentWordPointer);
+						wstring newReverseTranslation = standartTranslationForm(*currentWordPointer, newTextInBracket);
+
+						reverseTranslations.push_back(newReverseTranslation);
 						saveVectorToWfile(reverseWordPath, reverseTranslations);
+					}
+					else
+					{
+						for (int i = 0; i < reverseTranslations.size(); ++i)
+						{
+							wstring reverseTranslation = wstring(reverseTranslations[i]);
+							wstring textInBracketsOfReverseTranslation = cutTextInBracket(reverseTranslation);
+
+							if (reverseTranslation == *currentWordPointer)
+							{
+								if (textInBracketsOfReverseTranslation != newTextInBracket)
+								{
+									wstring question =
+										L"Translation + \""
+										+ reverseTranslation
+										+ L"\" already exist in word \""
+										+ newTranslation
+										+ L"\", but commentary is different. Would you like to change it?";
+
+									if (askQuestion(question))
+									{
+										reverseTranslations[i] = standartTranslationForm(*currentWordPointer, newTextInBracket);
+										saveVectorToWfile(reverseWordPath, reverseTranslations);
+									}
+
+									break;
+								}
+								else
+								{
+									break;
+								}
+							}
+						}
 					}
 				}
 			}

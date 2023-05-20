@@ -338,3 +338,8 @@ bool removeElement(wstring element, vector<wstring>& sourseVector)
 
 	return false;
 }
+
+wstring standartTranslationForm(wstring& translation, wstring& commentary)
+{
+	return commentary.empty() ? translation : translation + L" (" + commentary + L")";
+}

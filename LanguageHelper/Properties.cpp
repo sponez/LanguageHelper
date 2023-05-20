@@ -2,12 +2,30 @@
 
 wstring getPropertyOptionName(ProgramDirectories::Property* prop)
 {
-	if (prop->value >= INT_MAX)
-	{
-		return prop->name + L" OFF";
-	}
+	if (
+		prop->name == ProgramDirectories::programProperties.correctAnswersToDelete.name ||
+		prop->name == ProgramDirectories::programProperties.millisecondsToAnswerForCharacter.name
+	) {
+		if (prop->value >= INT_MAX)
+		{
+			return prop->name + L" OFF";
+		}
 
-	return prop->name + L" " + to_wstring(prop->value);
+		return prop->name + L" " + to_wstring(prop->value);
+	}
+	else if (
+		prop->name == ProgramDirectories::programProperties.endlessTesting.name ||
+		prop->name == ProgramDirectories::programProperties.randomTesting.name
+	) {
+		if (prop->value == 0)
+		{
+			return prop->name + L" OFF";
+		}
+		else
+		{
+			return prop->name + L" ON";
+		}
+	}
 }
 
 void changeAnswerTimeProperty(wstring& propertyName)
@@ -26,28 +44,58 @@ void changeAnswerTimeProperty(wstring& propertyName)
 	{
 		answerTimeProperty->value -= 200;
 	}
-
-	propertyName = getPropertyOptionName(answerTimeProperty);
 }
 
 void changeCorrectAnswerProperty(wstring& propertyName)
 {
 	ProgramDirectories::Property* correctAnswerProperty = &ProgramDirectories::programProperties.correctAnswersToDelete;
+	ProgramDirectories::Property* randomTestingProperty = &ProgramDirectories::programProperties.randomTesting;
 
-	if (correctAnswerProperty->value == INT_MAX)
+	if (randomTestingProperty->value)
 	{
-		correctAnswerProperty->value = 5;
+		if (correctAnswerProperty->value == INT_MAX)
+		{
+			correctAnswerProperty->value = 5;
+		}
+		else if (correctAnswerProperty->value <= 1)
+		{
+			correctAnswerProperty->value = INT_MAX;
+		}
+		else
+		{
+			correctAnswerProperty->value--;
+		}
 	}
-	else if (correctAnswerProperty->value <= 1)
+}
+
+void changeEndlessTestingProperty(wstring& propertyName)
+{
+	ProgramDirectories::Property* endlessTestingProperty = &ProgramDirectories::programProperties.endlessTesting;
+
+	if (endlessTestingProperty->value == 0)
 	{
-		correctAnswerProperty->value = INT_MAX;
+		endlessTestingProperty->value = 1;
 	}
 	else
 	{
-		correctAnswerProperty->value--;
+		endlessTestingProperty->value = 0;
 	}
+}
 
-	propertyName = getPropertyOptionName(correctAnswerProperty);
+void changeRandomTestingProperty(wstring& propertyName)
+{
+	ProgramDirectories::Property* correctAnswerProperty = &ProgramDirectories::programProperties.correctAnswersToDelete;
+	ProgramDirectories::Property* randomTestingProperty = &ProgramDirectories::programProperties.randomTesting;
+
+	if (randomTestingProperty->value == 0)
+	{
+		randomTestingProperty->value = 1;
+	}
+	else
+	{
+		randomTestingProperty->value = 0;
+		correctAnswerProperty->value = INT_MAX;
+	}
 }
 
 void setWindowSizeOption(wstring&)
@@ -108,17 +156,34 @@ void setFont(wstring&)
 
 void propertiesMenu(wstring&)
 {
-	vector<wstring> propertiesNames = {
-		getPropertyOptionName(&ProgramDirectories::programProperties.correctAnswersToDelete) ,
-		getPropertyOptionName(&ProgramDirectories::programProperties.millisecondsToAnswerForCharacter) ,
-		L"Set window size" ,
-		L"Set font"
+	vector<void (*)(wstring&)> functions = {
+		changeCorrectAnswerProperty ,
+		changeAnswerTimeProperty ,
+		changeEndlessTestingProperty ,
+		changeRandomTestingProperty ,
+		setWindowSizeOption ,
+		setFont
 	};
-	vector<void (*)(wstring&)> functions = { changeCorrectAnswerProperty , changeAnswerTimeProperty , setWindowSizeOption , setFont };
+
 	wstring selectText = L"Current properties";
 	wstring exitText = L"Back";
-	wconsoleMenu propertiesMenu(propertiesNames, functions, selectText, exitText);
+	wconsoleMenu propertiesMenu;
 
-	propertiesMenu.cyclicSelect();
+	short optionNum = 0;
+	do
+	{
+		vector<wstring> propertiesNames = {
+			getPropertyOptionName(&ProgramDirectories::programProperties.correctAnswersToDelete) ,
+			getPropertyOptionName(&ProgramDirectories::programProperties.millisecondsToAnswerForCharacter) ,
+			getPropertyOptionName(&ProgramDirectories::programProperties.endlessTesting) ,
+			getPropertyOptionName(&ProgramDirectories::programProperties.randomTesting) ,
+			L"Set window size" ,
+			L"Set font"
+		};
+
+		propertiesMenu = wconsoleMenu(propertiesNames, functions, selectText, exitText);
+		propertiesMenu.singleSelect(optionNum);
+	} while (optionNum != -1);
+
 	ProgramDirectories::saveProperties();
 }

@@ -37,3 +37,4 @@ bool contains(vector<wstring>& vector, wstring& element);
 bool askQuestion(wstring question);
 bool transmitElement(wstring element, vector<wstring>& sourseVector, vector<wstring>& targetvector);
 bool removeElement(wstring element, vector<wstring>& sourseVector);
+wstring standartTranslationForm(wstring& translation, wstring& commentary);

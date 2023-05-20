@@ -39,6 +39,8 @@ private:
 	{
 		Property correctAnswersToDelete;
 		Property millisecondsToAnswerForCharacter;
+		Property endlessTesting;
+		Property randomTesting;
 
 		Property windowWidth;
 		Property windowHeight;
@@ -52,6 +54,8 @@ private:
 			return {
 				&correctAnswersToDelete ,
 				&millisecondsToAnswerForCharacter ,
+				&endlessTesting ,
+				&randomTesting ,
 				&windowWidth ,
 				&windowHeight ,
 				&fontWeight ,
