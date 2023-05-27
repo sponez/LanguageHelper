@@ -135,10 +135,13 @@ void openAnswerTest(wstring&)
 		getMapFromWfile(ProgramDirectories::getPathToFile(ProgramDirectories::programFiles.successSave, currentLanguage), overallCorrectAnswers);
 		getVectorFromWfile(ProgramDirectories::getPathToFile(ProgramDirectories::programFiles.usedWords, currentLanguage), usedWords);
 		vectorDifference(allWords, usedWords, unusedWords);
-		for (int i = usedWords.size() - 1;; ++i)
+		for (int i = usedWords.size();; ++i)
 		{
 			if (i >= allWords.size())
 			{
+				unusedWords = vector<wstring>(usedWords);
+				usedWords.clear();
+
 				if (ProgramDirectories::programProperties.endlessTesting.value)
 				{
 					i = 0;
@@ -162,27 +165,23 @@ void openAnswerTest(wstring&)
 			}
 
 			wstring word;
-			if (ProgramDirectories::programProperties.randomTesting.value)
+			if (unusedWords.size() > 0)
 			{
-				word = randomWstring(unusedWords);
-
-				if (word.empty())
+				if (ProgramDirectories::programProperties.randomTesting.value)
 				{
-					wcout << L"Words are run out!" << endl;
-					_wsystem(L"pause");
-					_wsystem(L"cls");
-					break;
+					word = randomWstring(unusedWords);
+				}
+				else
+				{
+					word = unusedWords[0];
 				}
 			}
 			else
 			{
-				word = unusedWords[0];
-			}
-
-			if (unusedWords.empty())
-			{
-				unusedWords = vector<wstring>(usedWords);
-				usedWords.clear();
+				wcout << L"Words are run out!" << endl;
+				_wsystem(L"pause");
+				_wsystem(L"cls");
+				break;
 			}
 			transmitElement(word, unusedWords, usedWords);
 
