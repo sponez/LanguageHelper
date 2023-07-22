@@ -2,7 +2,7 @@
 #include "ProgramDirectories.h"
 #include "AdditionalFunctions.h"
 
-double findTimeToAnswer(vector<wstring>& translations);
+double findTimeToAnswer(wstring& word, vector<wstring>& translations);
 void workOnMistakes(wstring&);
 void openAnswerTest(wstring&);
 void testingType(wstring& stage);

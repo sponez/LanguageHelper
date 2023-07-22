@@ -2,6 +2,7 @@
 #include "ProgramDirectories.h"
 #include "AdditionalFunctions.h"
 
+wstring findWordPath(wstring word, wstring language);
 void getRandomWordsFromLearned(wstring&);
 void addTranslationsManual(wstring& word, wstring& wordPath, vector<wstring>& translations);
 void deleteTranslationManual(wstring& word, wstring& wordPath, vector<wstring>& translations, wstring& translationToDelete);

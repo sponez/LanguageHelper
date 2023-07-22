@@ -32,17 +32,11 @@ void changeAnswerTimeProperty(wstring& propertyName)
 {
 	ProgramDirectories::Property* answerTimeProperty = &ProgramDirectories::programProperties.millisecondsToAnswerForCharacter;
 
-	if (answerTimeProperty->value == INT_MAX)
-	{
-		answerTimeProperty->value = 2000;
-	}
-	else if (answerTimeProperty->value <= 200)
+	wcout << L"Set time to answer in milliseconds for character: ";
+	if (!(wcin >> answerTimeProperty->value))
 	{
 		answerTimeProperty->value = INT_MAX;
-	}
-	else
-	{
-		answerTimeProperty->value -= 200;
+		wcin.clear();
 	}
 }
 

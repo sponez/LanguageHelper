@@ -6,6 +6,27 @@ wstring* currentWordPointer;
 wstring* currentTranslationPointer;
 const size_t MAX_WORD_LENGTH = 255;
 
+wstring findWordPath(wstring word, wstring language) {
+	wstring wordPath;
+	
+	wordPath = ProgramDirectories::getPathToFile(
+		word,
+		language,
+		ProgramDirectories::stages.learned
+	);
+
+	if (!isPathExist(wordPath))
+	{
+		wordPath = ProgramDirectories::getPathToFile(
+			word,
+			language,
+			ProgramDirectories::stages.unlearned
+		);
+	}
+
+	return wordPath;
+}
+
 void getRandomWordsFromLearned(wstring&)
 {
 	int amount;
@@ -127,21 +148,7 @@ void addTranslationsManual(wstring& word, wstring& wordPath, vector<wstring>& tr
 				vector<wstring> reverseTranslations;
 				vector<wstring> reverseTranslationsWithoutBrackets;
 
-				reverseWordPath = ProgramDirectories::getPathToFile(
-					translation,
-					ProgramDirectories::reverseLanguage(currentLanguage),
-					ProgramDirectories::stages.learned
-				);
-
-				if (!isPathExist(reverseWordPath))
-				{
-					reverseWordPath = ProgramDirectories::getPathToFile(
-						translation,
-						ProgramDirectories::reverseLanguage(currentLanguage),
-						ProgramDirectories::stages.unlearned
-					);
-				}
-
+				reverseWordPath = findWordPath(translation, ProgramDirectories::reverseLanguage(currentLanguage));
 				getVectorFromWfile(reverseWordPath, reverseTranslations);
 				getVectorFromWfile(reverseWordPath, reverseTranslationsWithoutBrackets, true);
 
@@ -245,18 +252,15 @@ void deleteTranslationManual(wstring& word, wstring& wordPath, vector<wstring>& 
 {
 	if (currentStage == ProgramDirectories::stages.unlearned)
 	{
+		wstring translationToDeleteWithoutBrackets;
+		wstring reverseWordPath;
 		vector<wstring> reverseTranslations;
 
-		wstring translationToDeleteWithoutBrackets = wstring(translationToDelete);
+		translationToDeleteWithoutBrackets = wstring(translationToDelete);
 		cutTextInBracket(translationToDeleteWithoutBrackets);
-
-		wstring reverseWordPath = ProgramDirectories::getPathToFile(
-			translationToDeleteWithoutBrackets,
-			ProgramDirectories::reverseLanguage(currentLanguage),
-			ProgramDirectories::stages.unlearned
-		);
-
+		reverseWordPath = findWordPath(translationToDeleteWithoutBrackets, ProgramDirectories::reverseLanguage(currentLanguage));
 		getVectorFromWfile(reverseWordPath, reverseTranslations, true);
+
 		if (contains(reverseTranslations, word))
 		{
 			wstring question = L"Delete the translation \"" + word + L"\" from the word's \"" + translationToDeleteWithoutBrackets + L"\" translations?";
@@ -389,12 +393,7 @@ void translationEditorFunction(wstring& optionName)
 
 			translations.erase(currentTranslateIt);
 
-			reverseWordPath = ProgramDirectories::getPathToFile(
-				oldTranslation,
-				ProgramDirectories::reverseLanguage(currentLanguage),
-				ProgramDirectories::stages.unlearned
-			);
-
+			reverseWordPath = findWordPath(oldTranslation, ProgramDirectories::reverseLanguage(currentLanguage));
 			getVectorFromWfile(reverseWordPath, reverseTranslations);
 			getVectorFromWfile(reverseWordPath, reverseTranslationsWithoutBrackets, true);
 
@@ -433,12 +432,7 @@ void translationEditorFunction(wstring& optionName)
 
 				if (didWordExistInTranslation && newTranslation.length() < MAX_WORD_LENGTH)
 				{
-					reverseWordPath = ProgramDirectories::getPathToFile(
-						newTranslation,
-						ProgramDirectories::reverseLanguage(currentLanguage),
-						ProgramDirectories::stages.unlearned
-					);
-
+					reverseWordPath = findWordPath(newTranslation, ProgramDirectories::reverseLanguage(currentLanguage));
 					getVectorFromWfile(reverseWordPath, reverseTranslations);
 					getVectorFromWfile(reverseWordPath, reverseTranslationsWithoutBrackets, true);
 
@@ -599,6 +593,28 @@ void ranameWordFunction(wstring&)
 		*currentWordPointer = oldWord;
 		return;
 	}
+	if (
+		isPathExist(
+			ProgramDirectories::getPathToFile(
+				*currentWordPointer,
+				currentLanguage,
+				ProgramDirectories::stages.learned
+			)
+		) ||
+		isPathExist(
+			ProgramDirectories::getPathToFile(
+				*currentWordPointer,
+				currentLanguage,
+				ProgramDirectories::stages.unlearned
+			)
+		)
+	) {
+		wcout << L"Word already exist" << endl;
+		_wsystem(L"pause");
+
+		*currentWordPointer = oldWord;
+		return;
+	}
 
 	_wremove(oldWordPath.c_str());
 	if (currentStage == ProgramDirectories::stages.unlearned) { ProgramDirectories::removeWordFromProgramFiles(oldWord, currentLanguage); }
@@ -611,7 +627,7 @@ void ranameWordFunction(wstring&)
 	{
 		cutTextInBracket(translation);
 
-		wstring reverseWordPath = ProgramDirectories::getPathToFile(translation, ProgramDirectories::reverseLanguage(currentLanguage), ProgramDirectories::stages.unlearned);
+		wstring reverseWordPath = findWordPath(translation, ProgramDirectories::reverseLanguage(currentLanguage));
 		vector<wstring> reverseTranslations;
 		vector<wstring>::iterator translationIt;
 		bool doOldWordExistInTranslation = false;
@@ -666,6 +682,7 @@ void wordEditor(wstring& word)
 		editorOptions = { L"Rename" , L"View translations" , L"Add translations" , L"Delete" };
 		functions = { ranameWordFunction , displayTranslations , addTranslationFunction , deleteWordFunction };
 		editor = wconsoleMenu(editorOptions, functions, selectText, exitText);
+		editor.setMainMenuFlag();
 
 		do
 		{
@@ -677,6 +694,7 @@ void wordEditor(wstring& word)
 		editorOptions = { L"View translations" , L"Move to unlearned", L"Delete" };
 		functions = { displayTranslations , moveToUnlearned , deleteWordFunction };
 		editor = wconsoleMenu(editorOptions, functions, selectText, exitText);
+		editor.setMainMenuFlag();
 
 		do
 		{
@@ -738,9 +756,12 @@ void addNewOrEdit(wstring& stage)
 		wstring exitText = L"Back";
 		wconsoleMenu languageOfWord = wconsoleMenu(options, functions, selectText, exitText);
 
+		languageOfWord.setMainMenuFlag();
 		languageOfWord.cyclicSelect();
 	}
-	else { displayAllSavedWordsToEdit(currentStage); }
+	else {
+		displayAllSavedWordsToEdit(currentStage);
+	}
 
 	currentStage.clear();
 }

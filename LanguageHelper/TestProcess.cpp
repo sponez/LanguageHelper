@@ -3,11 +3,11 @@
 wstring currentLanguage;
 wstring currentStage;
 
-double findTimeToAnswer(vector<wstring>& translations)
+double findTimeToAnswer(wstring& word, vector<wstring>& translations)
 {
 	if (ProgramDirectories::programProperties.millisecondsToAnswerForCharacter.value != INT_MAX)
 	{
-		const double timeToRead = 1000;
+		const double timeToRead = 1200 + 60 * word.length();
 		unsigned long long maxLen = 0;
 
 		for (wstring translation : translations)
@@ -63,7 +63,7 @@ void workOnMistakes(wstring&)
 		wcout << word << L" is: ";
 
 		wstring answer;
-		if (wconsoleMenu::consoleWstringEditor(answer, findTimeToAnswer(translations)))
+		if (wconsoleMenu::consoleWstringEditor(answer, findTimeToAnswer(word, translations)))
 		{
 			if (answer.empty()) { break; }
 			wordToLowerCase(answer);
@@ -183,7 +183,6 @@ void openAnswerTest(wstring&)
 				_wsystem(L"cls");
 				break;
 			}
-			transmitElement(word, unusedWords, usedWords);
 
 			vector<wstring> translations;
 			getVectorFromWfile(ProgramDirectories::getPathToFile(word, currentLanguage, currentStage), translations, true);
@@ -202,7 +201,7 @@ void openAnswerTest(wstring&)
 			wcout << word << L" is: ";
 
 			wstring answer;
-			if (wconsoleMenu::consoleWstringEditor(answer, findTimeToAnswer(translations)))
+			if (wconsoleMenu::consoleWstringEditor(answer, findTimeToAnswer(word, translations)))
 			{
 				if (answer.empty())
 				{
@@ -210,6 +209,7 @@ void openAnswerTest(wstring&)
 				}
 				wordToLowerCase(answer);
 
+				transmitElement(word, unusedWords, usedWords);
 				amountOfRepeats++;
 				if (sucsessFeedback(answer, translations))
 				{
@@ -238,6 +238,7 @@ void openAnswerTest(wstring&)
 				printTranslations(translations);
 				_wsystem(L"pause");
 
+				transmitElement(word, unusedWords, usedWords);
 				amountOfRepeats++;
 				overallCorrectAnswers[word] = 0;
 			}
@@ -300,7 +301,7 @@ void openAnswerTest(wstring&)
 			wcout << word << L" is: ";
 
 			wstring answer;
-			if (wconsoleMenu::consoleWstringEditor(answer, findTimeToAnswer(translations)))
+			if (wconsoleMenu::consoleWstringEditor(answer, findTimeToAnswer(word, translations)))
 			{
 				if (answer.empty()) { break; }
 				wordToLowerCase(answer);
