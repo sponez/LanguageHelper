@@ -73,12 +73,13 @@ wstring cutTextInBracket(wstring& string)
 	}
 }
 
-void getWords(wstring path, vector<wstring>& emptyList)
+void getEntries(wstring path, vector<wstring>& emptyList)
 {
-	if (!isPathExist(path)) return;
+	if (!isPathExist(path)) {
+		return;
+	}
 
-	for (auto const& fileIterator : filesystem::directory_iterator{ path })
-	{
+	for (auto const& fileIterator : filesystem::directory_iterator{ path }) {
 		wstring word = fileIterator.path().filename();
 		emptyList.push_back(word);
 	}
@@ -178,7 +179,10 @@ void removeWordFromWfile(wstring filePath, wstring word)
 		wstring rawLine = wstring(lines[i]);
 		size_t separatorPosition = rawLine.find(L'>');
 
-		if (separatorPosition != string::npos) { rawLine.substr(0, separatorPosition); }
+		if (separatorPosition != string::npos) {
+			rawLine.substr(0, separatorPosition);
+		}
+
 		if (rawLine == word) {
 			lines.erase(lines.begin() + i);
 			saveVectorToWfile(filePath, lines);

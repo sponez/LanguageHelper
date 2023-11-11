@@ -32,7 +32,7 @@ void getRandomWordsFromLearned(wstring&)
 	int amount;
 	vector<wstring> wordsToMove;
 
-	getWords(ProgramDirectories::getPathToDirectory(currentLanguage, ProgramDirectories::stages.learned), wordsToMove);
+	getEntries(ProgramDirectories::getPathToDirectory(currentLanguage, ProgramDirectories::stages.learned), wordsToMove);
 	if (wordsToMove.size() > 0)
 	{
 		wcout << L"Enter an amount of words from 1 to " << wordsToMove.size() << L": ";
@@ -455,7 +455,7 @@ void translationEditorFunction(wstring& optionName)
 								if (textInBracketsOfReverseTranslation != newTextInBracket)
 								{
 									wstring question =
-										L"Translation + \""
+										L"Translation \""
 										+ reverseTranslation
 										+ L"\" already exist in word \""
 										+ newTranslation
@@ -717,7 +717,7 @@ void displayAllSavedWordsToEdit(wstring&)
 		wconsoleMenu displayWords;
 		wstring selectText;
 
-		getWords(ProgramDirectories::getPathToDirectory(currentLanguage, currentStage), words);
+		getEntries(ProgramDirectories::getPathToDirectory(currentLanguage, currentStage), words);
 		if (words.size() == 0)
 		{
 			wcout << "Words not found!" << endl;

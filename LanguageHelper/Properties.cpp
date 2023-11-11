@@ -148,6 +148,24 @@ void setFont(wstring&)
 	);
 }
 
+void deleteProfile(wstring&) {
+	wstring profilePath = ProgramDirectories::globalPath + L'\0';
+
+	SHFILEOPSTRUCT shfo = {
+		NULL,
+		FO_DELETE,
+		profilePath.c_str(),
+		NULL,
+		FOF_SILENT | FOF_NOERRORUI | FOF_NOCONFIRMATION,
+		FALSE,
+		NULL,
+		NULL
+	};
+
+	SHFileOperationW(&shfo);
+	exit(0);
+}
+
 void propertiesMenu(wstring&)
 {
 	vector<void (*)(wstring&)> functions = {
@@ -156,7 +174,8 @@ void propertiesMenu(wstring&)
 		changeEndlessTestingProperty ,
 		changeRandomTestingProperty ,
 		setWindowSizeOption ,
-		setFont
+		setFont ,
+		deleteProfile
 	};
 
 	wstring selectText = L"Current properties";
@@ -172,7 +191,8 @@ void propertiesMenu(wstring&)
 			getPropertyOptionName(&ProgramDirectories::programProperties.endlessTesting) ,
 			getPropertyOptionName(&ProgramDirectories::programProperties.randomTesting) ,
 			L"Set window size" ,
-			L"Set font"
+			L"Set font" ,
+			L"Delete profile"
 		};
 
 		propertiesMenu = wconsoleMenu(propertiesNames, functions, selectText, exitText);

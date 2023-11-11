@@ -24,7 +24,7 @@ void displaySavedWords(wstring& stage)
 
 	currentStage = stage;
 
-	getWords(ProgramDirectories::getPathToDirectory(currentLanguage, currentStage), words);
+	getEntries(ProgramDirectories::getPathToDirectory(currentLanguage, currentStage), words);
 	if (words.size() == 0)
 	{
 		wcout << "Words not found!" << endl;

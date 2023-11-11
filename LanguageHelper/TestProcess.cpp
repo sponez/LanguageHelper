@@ -106,7 +106,7 @@ void openAnswerTest(wstring&)
 {
 	vector<wstring> allWords;
 
-	getWords(ProgramDirectories::getPathToDirectory(currentLanguage, currentStage), allWords);
+	getEntries(ProgramDirectories::getPathToDirectory(currentLanguage, currentStage), allWords);
 	if (allWords.empty())
 	{
 		wcout << L"Words not found!" << endl;

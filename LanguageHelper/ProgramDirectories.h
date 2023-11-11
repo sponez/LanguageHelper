@@ -80,6 +80,7 @@ private:
 
 public:
 	inline static wstring globalPath;
+	inline static wstring profileName;
 	inline static Languages languages;
 	inline static Stages stages;
 	inline static ProgramFiles programFiles;

@@ -164,7 +164,7 @@ void ProgramDirectories::checkProgressFiles()
 		vector<wstring> unpassedWordsArray;
 		vector<wstring> usedWordsArray;
 
-		getWords(getPathToDirectory(checkLanguage, stages.unlearned), words);
+		getEntries(getPathToDirectory(checkLanguage, stages.unlearned), words);
 
 		getMapFromWfile(getPathToFile(programFiles.successSave, checkLanguage), successSaveMap);
 		for (map<wstring, int>::iterator mapIt = successSaveMap.begin(); mapIt != successSaveMap.end(); mapIt++)
@@ -346,9 +346,33 @@ wstring ProgramDirectories::reverseStage(wstring stage)
 	return (stage == stages.unlearned) ? stages.learned : stages.unlearned;
 }
 
+void setProfileName(wstring& profileName) {
+	ProgramDirectories::profileName = profileName;
+}
+
+void addProfileNewProfile(wstring&) {
+	wcout << L"Enter a new profile name: ";
+	wcin >> ProgramDirectories::profileName;
+}
+
 void ProgramDirectories::getProgramDirectories()
 {
 	getGlobalPath();
+
+	vector<wstring> profiles;
+	getEntries(ProgramDirectories::globalPath, profiles);
+	profiles.push_back(L"Add new");
+
+
+	vector<void (*)(wstring&)> profileSet = functionMultiplier(setProfileName, profiles.size() - 1);
+	profileSet.push_back(addProfileNewProfile);
+	wstring selectText = L"Select a profile";
+	wconsoleMenu profileSelect(profiles, profileSet, selectText);
+
+	profileSelect.singleSelect();
+
+	globalPath += L'\\' + profileName;
+
 	createDirrectory(getPathToDirectory());
 
 	getLanguagesConfigFile();
