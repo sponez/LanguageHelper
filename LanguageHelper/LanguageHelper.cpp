@@ -22,7 +22,8 @@ int main(int argc, char* argv[])
 		wconsoleMenu::setFontInfo(
 			ProgramDirectories::programProperties.fontWeight.value,
 			ProgramDirectories::programProperties.fontWidth.value,
-			ProgramDirectories::programProperties.fontHeight.value
+			ProgramDirectories::programProperties.fontHeight.value,
+			ProgramDirectories::programProperties.fontIndex.value
 		);
 		wconsoleMenu::setWindowSize(
 			ProgramDirectories::programProperties.windowWidth.value,

@@ -48,6 +48,7 @@ private:
 		Property fontWeight;
 		Property fontWidth;
 		Property fontHeight;
+		Property fontIndex;
 
 		vector<Property*> getPropertiesList()
 		{
@@ -60,7 +61,8 @@ private:
 				&windowHeight ,
 				&fontWeight ,
 				&fontWidth ,
-				&fontHeight
+				&fontHeight ,
+				&fontIndex
 			};
 		}
 	};

@@ -10,9 +10,11 @@ double findTimeToAnswer(wstring& word, vector<wstring>& translations)
 		const double timeToRead = 1200 + 60 * word.length();
 		unsigned long long maxLen = 0;
 
-		for (wstring translation : translations)
-		{
-			maxLen = max(maxLen, translation.length());
+		for (wstring translation : translations) {
+			wstring translationWithoutBrackets = wstring(translation);
+			cutTextInBracket(translationWithoutBrackets);
+
+			maxLen = max(maxLen, translationWithoutBrackets.length());
 		}
 
 		return timeToRead + maxLen * ProgramDirectories::programProperties.millisecondsToAnswerForCharacter.value;
@@ -48,7 +50,7 @@ void workOnMistakes(wstring&)
 		}
 
 		vector<wstring> translations;
-		getVectorFromWfile(ProgramDirectories::getPathToFile(word, currentLanguage, currentStage), translations, true);
+		getVectorFromWfile(ProgramDirectories::getPathToFile(word, currentLanguage, currentStage), translations);
 		if (translations.empty())
 		{
 			wcout << L"Word \"" << word << L"\" doesn't exist already" << endl;
@@ -169,7 +171,7 @@ void openAnswerTest(wstring&)
 			{
 				if (ProgramDirectories::programProperties.randomTesting.value)
 				{
-					word = randomWstring(unusedWords);
+					word = randomWstringFromArray(unusedWords);
 				}
 				else
 				{
@@ -185,7 +187,8 @@ void openAnswerTest(wstring&)
 			}
 
 			vector<wstring> translations;
-			getVectorFromWfile(ProgramDirectories::getPathToFile(word, currentLanguage, currentStage), translations, true);
+			getVectorFromWfile(ProgramDirectories::getPathToFile(word, currentLanguage, currentStage), translations);
+
 			if (translations.empty())
 			{
 				wcout << L"Word doesn't exist already" << endl;
@@ -201,23 +204,19 @@ void openAnswerTest(wstring&)
 			wcout << word << L" is: ";
 
 			wstring answer;
-			if (wconsoleMenu::consoleWstringEditor(answer, findTimeToAnswer(word, translations)))
-			{
-				if (answer.empty())
-				{
+			if (wconsoleMenu::consoleWstringEditor(answer, findTimeToAnswer(word, translations))) {
+				if (answer.empty()) {
 					break;
 				}
-				wordToLowerCase(answer);
 
+				wordToLowerCase(answer);
 				transmitElement(word, unusedWords, usedWords);
 				amountOfRepeats++;
-				if (sucsessFeedback(answer, translations))
-				{
+				if (sucsessFeedback(answer, translations)) {
 					correctAnswers++;
 					overallCorrectAnswers[word]++;
 
-					if (overallCorrectAnswers[word] >= ProgramDirectories::programProperties.correctAnswersToDelete.value)
-					{
+					if (overallCorrectAnswers[word] >= ProgramDirectories::programProperties.correctAnswersToDelete.value) {
 						MoveFileW(ProgramDirectories::getPathToFile(word, currentLanguage, ProgramDirectories::stages.unlearned).c_str(),
 							ProgramDirectories::getPathToFile(word, currentLanguage, ProgramDirectories::stages.learned).c_str());
 
@@ -226,8 +225,7 @@ void openAnswerTest(wstring&)
 						overallCorrectAnswers.erase(word);
 					}
 				}
-				else
-				{
+				else {
 					overallCorrectAnswers[word] = 0;
 				}
 			}
@@ -277,7 +275,7 @@ void openAnswerTest(wstring&)
 		
 		while (allWords.size() > 0)
 		{
-			wstring word = randomWstring(allWords);
+			wstring word = randomWstringFromArray(allWords);
 			if (word.empty())
 			{
 				wcout << L"You have forgot all words!" << endl;

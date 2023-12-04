@@ -7,10 +7,25 @@ void wordViewer(wstring& word)
 {
 	vector <wstring> translations;
 
-	wcout << L"Word: " << word << endl;
-	wcout << L"Translations: ";
-	getVectorFromWfile(ProgramDirectories::getPathToFile(word, currentLanguage, currentStage), translations);
-	printVector(translations, L", ");
+	wcout << L"Word: " << word << L'\n';
+
+	getVectorFromWfile(
+		ProgramDirectories::getPathToFile(
+			word,
+			currentLanguage,
+			currentStage
+		),
+		translations
+	);
+
+	if (translations.size() > 1) {
+		wcout << L"Translations:" << L'\n';
+		printVector(translations, L"\n", 1);
+	}
+	else {
+		wcout << L"Translation: ";
+		printVector(translations);
+	}
 
 	_wsystem(L"pause");
 }

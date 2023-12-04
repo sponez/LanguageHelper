@@ -141,10 +141,18 @@ void setFont(wstring&)
 		ProgramDirectories::programProperties.fontHeight.value = 11;
 	}
 
+	if (askQuestion(L"Would you like to use asian characters?")) {
+		ProgramDirectories::programProperties.fontIndex.value = 1;
+	}
+	else {
+		ProgramDirectories::programProperties.fontIndex.value = 0;
+	}
+
 	wconsoleMenu::setFontInfo(
 		ProgramDirectories::programProperties.fontWeight.value, 
 		ProgramDirectories::programProperties.fontWidth.value,
-		ProgramDirectories::programProperties.fontHeight.value
+		ProgramDirectories::programProperties.fontHeight.value,
+		ProgramDirectories::programProperties.fontIndex.value
 	);
 }
 

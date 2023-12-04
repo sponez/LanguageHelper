@@ -64,6 +64,7 @@ void ProgramDirectories::saveDefaulProperties()
 	programProperties.fontWeight.value = 18;
 	programProperties.fontWidth.value = 18;
 	programProperties.fontHeight.value = 18;
+	programProperties.fontIndex.value = 1;
 	saveProperties();
 }
 
@@ -78,6 +79,7 @@ void ProgramDirectories::getProperties()
 	programProperties.fontWeight.name = L"fontWeight";
 	programProperties.fontWidth.name = L"fontWidth";
 	programProperties.fontHeight.name = L"fontHeight";
+	programProperties.fontIndex.name = L"fontIndex";
 
 	wifstream propertiesFile(getPathToFile(programFiles.properties));
 	propertiesFile.imbue(std::locale(propertiesFile.getloc(), new codecvt_utf8<wchar_t, 0x10ffff, consume_header>()));
@@ -358,6 +360,7 @@ void addProfileNewProfile(wstring&) {
 void ProgramDirectories::getProgramDirectories()
 {
 	getGlobalPath();
+	createDirrectory(getPathToDirectory());
 
 	vector<wstring> profiles;
 	getEntries(ProgramDirectories::globalPath, profiles);
@@ -368,6 +371,7 @@ void ProgramDirectories::getProgramDirectories()
 	profileSet.push_back(addProfileNewProfile);
 	wstring selectText = L"Select a profile";
 	wconsoleMenu profileSelect(profiles, profileSet, selectText);
+	wconsoleMenu::setFontInfo(30, 30, 30, 1); //Display all characters in console
 
 	profileSelect.singleSelect();
 

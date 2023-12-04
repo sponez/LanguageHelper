@@ -31,7 +31,7 @@ class wconsoleMenu : consoleParameters
 	void drawMenu(vector<pair<wstring, void (*)(wstring&)>>&, short, wstring); //Draw all options
 	void redrawMenu(vector<pair<wstring, void (*)(wstring&)>>&, short, short); //Redraw changed options
 	bool selectController(vector<pair<wstring, void (*)(wstring&)>>&, short&, wstring); //Controller for menu
-	void displayFilteredOptions(wstring&, vector<pair<wstring, void (*)(wstring&)>>&); //If use select with filter, this is necessary to display sutable options
+	void displayFilteredOptions(wstring&, vector<pair<wstring, void (*)(wstring&)>>&); //If use select with filter, this is necessary to display suitable options
 	vector<pair<wstring, void (*)(wstring&)>> optionsFilterer(wstring&, vector<short>&); //If use select with filter, this is necessary to filter options by characters
 	void setPosition(short&, vector<pair<wstring, void (*)(wstring&)>>&);
 
@@ -56,7 +56,7 @@ public:
 
 	//Other public functions
 	static void setWindowSize(unsigned short newNumberOfColumns, unsigned short newNumberOfLines);
-	static void setFontInfo(unsigned short fontWeight, unsigned short fontWidth, unsigned short fontHeight);
+	static void setFontInfo(unsigned short fontWeight, unsigned short fontWidth, unsigned short fontHeight, unsigned short fontName);
 	static void consoleWstringEditor(wstring& string);
 	static bool consoleWstringEditor(wstring& string, double millisecondsToEdit);
 	static vector<wstring> wstringSplitter(wstring&, wstring);
@@ -73,11 +73,17 @@ public:
 	void cyclicSelectWithFilter();
 };
 
-void wconsoleMenu::setFontInfo(unsigned short fontWeight, unsigned short fontWidth, unsigned short fontHeight)
+void wconsoleMenu::setFontInfo(unsigned short fontWeight, unsigned short fontWidth, unsigned short fontHeight, unsigned short fontIndex)
 {
 	fontInfo.FontWeight = fontWeight;
 	fontInfo.dwFontSize.X = fontWidth;
 	fontInfo.dwFontSize.Y = fontHeight;
+	if (fontIndex == 0) {
+		wcscpy(fontInfo.FaceName, L"Cascadia Mono");
+	}
+	else {
+		wcscpy(fontInfo.FaceName, L"NSimSun");
+	}
 
 	SetCurrentConsoleFontEx(
 		consoleHandle,
@@ -253,71 +259,86 @@ vector<wstring> wconsoleMenu::wstringSplitter(wstring& s, wstring det = L" ")
 	return stringParts;
 }
 
-double wconsoleMenu::DamerauLevenshteinDistance(wstring& mainWord, wstring& secondaryWord)
+double wconsoleMenu::DamerauLevenshteinDistance(wstring& firstWord, wstring& secondWord)
 {
-	if (mainWord == secondaryWord)
+	if (firstWord == secondWord) {
 		return 0.0;
+	}
 
-	double mwl = mainWord.length();
-	double swl = secondaryWord.length();
-	if (mwl == 0.0 || swl == 0.0)
+	double firstWordLength = firstWord.length();
+	double secondWordLength = secondWord.length();
+	if (firstWordLength == 0.0 || secondWordLength == 0.0) {
 		return DBL_MAX;
+	}
 
 	double deleteCost = 1.0;
 	double insertCost = 1.0;
-	double replaceCost = 1.0;
-	double transposeCost = 1.0;
-	double INF = mwl * swl;
+	double replaceCost = 0.9;
+	double transposeCost = 0.7;
+	double INF = firstWordLength * secondWordLength;
 
 	vector<vector<double>> distanceMatrix;
-	distanceMatrix.resize(mwl + 1);
-	for (int i = 0; i <= mwl; i++)
-		distanceMatrix[i].resize(swl + 1);
+	distanceMatrix.resize(firstWordLength + 1);
+	for (int i = 0; i <= firstWordLength; i++) {
+		distanceMatrix[i].resize(secondWordLength + 1);
+	}
 
 	distanceMatrix[0][0] = 0;
-	for (int i = 0; i < mwl; i++)
+	for (int i = 0; i < firstWordLength; i++)
 	{
 		distanceMatrix[i + 1][1] = i * deleteCost;
 		distanceMatrix[i + 1][0] = INF;
 	}
-	for (int j = 0; j < swl; j++)
+	for (int j = 0; j < secondWordLength; j++)
 	{
 		distanceMatrix[1][j + 1] = j * insertCost;
 		distanceMatrix[0][j + 1] = INF;
 	}
 
 	map<wchar_t, int> lastPosition;
-	for (int i = 0; i < mwl; i++)
-		lastPosition[mainWord[i]] = 0;
-	for (int i = 0; i < swl; i++)
-		lastPosition[secondaryWord[i]] = 0;
+	for (int i = 0; i < firstWordLength; i++) {
+		lastPosition[firstWord[i]] = 0;
+	}
+	for (int i = 0; i < secondWordLength; i++) {
+		lastPosition[secondWord[i]] = 0;
+	}
 
-	for (int i = 0; i < mwl; i++)
+	for (int i = 0; i < firstWordLength; i++)
 	{
 		int last = 0;
-		for (int j = 0; j < swl; j++)
+
+		for (int j = 0; j < secondWordLength; j++)
 		{
-			int _i = lastPosition[secondaryWord[j]];
+			int _i = lastPosition[secondWord[j]];
 			int _j = last;
-			if (mainWord[i] == secondaryWord[j])
+
+			if (firstWord[i] == secondWord[j])
 			{
 				distanceMatrix[i + 1][j + 1] = distanceMatrix[i][j];
 				last = j;
 			}
-			else
-				distanceMatrix[i + 1][j + 1] = min(min((distanceMatrix[i][j] + replaceCost),
-					(distanceMatrix[i + 1][j] + insertCost)),
-					(distanceMatrix[i][j + 1] + deleteCost));
+			else {
+				distanceMatrix[i + 1][j + 1] = min(
+					min(
+						(distanceMatrix[i][j] + replaceCost),
+						(distanceMatrix[i + 1][j] + insertCost)
+					),
+					(distanceMatrix[i][j + 1] + deleteCost)
+				);
+			}
 
-			if (i - _i - 1 > 0 && j - _j - 1 > 0)
-				distanceMatrix[i + 1][j + 1] = min(distanceMatrix[i + 1][j + 1],
-					(distanceMatrix[_i][_j] + (i - _i - 1) * deleteCost + transposeCost + (j - _j - 1) * insertCost));
+			if (i - _i - 1 > 0 && j - _j - 1 > 0) {
+				distanceMatrix[i + 1][j + 1] = min(
+					distanceMatrix[i + 1][j + 1],
+					(distanceMatrix[_i][_j] + (i - _i - 1) * deleteCost + transposeCost + (j - _j - 1) * insertCost)
+				);
+			}
 		}
 
-		lastPosition[mainWord[i]] = i;
+		lastPosition[firstWord[i]] = i;
 	}
 
-	return distanceMatrix[mwl][swl];
+	return distanceMatrix[firstWordLength][secondWordLength];
 }
 
 wconsoleMenu::wconsoleMenu(vector<wstring>& optionNames, wstring selectText = L"", wstring exitText = L"")

@@ -104,7 +104,7 @@ void vectorDifference(vector<wstring>& first, vector<wstring>& second, vector<ws
 	}
 }
 
-wstring randomWstring(vector<wstring>& wstringArray)
+wstring randomWstringFromArray(vector<wstring>& wstringArray)
 {
 	if (wstringArray.empty())
 	{
@@ -121,8 +121,9 @@ vector<void (*)(wstring&)> functionMultiplier(void (*function)(wstring&), short 
 {
 	vector<void (*)(wstring&)> functions;
 
-	for (short i = 0; i < amount; i++)
+	for (short i = 0; i < amount; i++) {
 		functions.push_back(function);
+	}
 
 	return functions;
 }
@@ -142,14 +143,19 @@ void shuffleVector(vector<wstring>& vectorForShuffle)
 
 void getVectorFromWfile(wstring filePath, vector<wstring>& emptyVector, bool removeBracket)
 {
-	if (!isPathExist(filePath)) return;
+	if (!isPathExist(filePath)) {
+		return;
+	}
 
 	wifstream sourseFile(filePath);
 	sourseFile.imbue(locale(sourseFile.getloc(), new codecvt_utf8<wchar_t, 0x10ffff, consume_header>()));
 
 	for (wstring word; getline(sourseFile, word);)
 	{
-		if (removeBracket) cutTextInBracket(word);
+		if (removeBracket) {
+			cutTextInBracket(word);
+		}
+
 		emptyVector.push_back(word);
 	}
 
@@ -219,45 +225,74 @@ void saveMapToWfile(wstring filePath, map<wstring, int>& sourseMap)
 	targetFile.close();
 }
 
-void printVector(vector<wstring> vector, wstring separator, bool newLineAfter)
+void printVector(vector<wstring>& vector, wstring separator, int listingType, bool newLineAfter)
 {
-	if (vector.empty()) return;
+	if (vector.empty()) {
+		return;
+	}
 
-	for (int i = 0; i < vector.size() - 1; i++) { wcout << vector[i] << separator; }
-	wcout << vector.back();
-	if (newLineAfter) wcout << endl;
+	wstring prefix;
+	switch (listingType) {
+	case 0:
+		prefix = L"";
+		break;
+	case 1:
+		prefix = L"• ";
+		break;
+	default:
+		prefix = L"";
+		break;
+	}
+
+	for (int i = 0; i < vector.size() - 1; ++i) {
+		if (listingType == 2) {
+			prefix = (i + 1) + L". ";
+		}
+
+		wcout << prefix << vector[i] << separator;
+	}
+	
+	wcout << prefix << vector.back();
+
+	if (newLineAfter) {
+		wcout << L'\n';
+	}
 }
 
 void printTranslations(vector<wstring> translations)
 {
-	if (translations.size() == 1) { wcout << L"Correct is " << translations[0] << endl; }
-	else
-	{
+	if (translations.size() == 1) {
+		wcout << L"Correct is " << translations[0] << endl;
+	}
+	else {
 		wcout << L"One of the following is correct:" << endl;
 		printVector(translations);
 	}
 }
 
-bool sucsessFeedback(wstring answer, vector<wstring> translations)
+bool sucsessFeedback(wstring& answer, vector<wstring>& translations)
 {
 	double minDistance = DBL_MAX;
+	double equalDistance = 0.0;
+	double successDistance = 0.34;
 
 	for (wstring translation : translations)
 	{
-		double currentDistance = wconsoleMenu::DamerauLevenshteinDistance(translation, answer) / translation.length();
+		wstring translationWithoutBrackets = wstring(translation);
+		cutTextInBracket(translationWithoutBrackets);
+
+		double currentDistance = wconsoleMenu::DamerauLevenshteinDistance(translationWithoutBrackets, answer) / translationWithoutBrackets.length();
 		minDistance = min(minDistance, currentDistance);
 	}
 
-	if (minDistance == 0.0)
-	{
+	if (minDistance == equalDistance) {
 		wcout << L"Absolutely correct!" << endl;
 		printTranslations(translations);
 		_wsystem(L"pause");
 
 		return true;
 	}
-	else if (minDistance <= 0.34)
-	{
+	else if (minDistance <= successDistance) {
 		wcout << L"Almost correct." << endl;
 		printTranslations(translations);
 		wcout << L"But it will be scored!" << endl;
@@ -265,8 +300,7 @@ bool sucsessFeedback(wstring answer, vector<wstring> translations)
 
 		return true;
 	}
-	else
-	{
+	else {
 		wcout << L"Nope." << endl;
 		printTranslations(translations);
 		wcout << L"It won't be scored!" << endl;
@@ -287,14 +321,11 @@ void addAllPairsCorrespondencesToSetFrom(wstring path, set<pair<wstring, wstring
 		vector<wstring> translations;
 
 		getVectorFromWfile(wordPath, translations, true);
-		for (wstring translation : translations)
-		{
-			if (reverseOrder)
-			{
+		for (wstring translation : translations) {
+			if (reverseOrder) {
 				correspondences.insert(pair<wstring, wstring>(translation, word));
 			}
-			else
-			{
+			else {
 				correspondences.insert(pair<wstring, wstring>(word, translation));
 			}
 		}

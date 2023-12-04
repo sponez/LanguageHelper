@@ -61,7 +61,7 @@ void getRandomWordsFromLearned(wstring&)
 			{
 				for (int i = 0; i < amount; i++)
 				{
-					wstring wordToMove = randomWstring(wordsToMove);
+					wstring wordToMove = randomWstringFromArray(wordsToMove);
 
 					if (!MoveFileW(ProgramDirectories::getPathToFile(wordToMove, currentLanguage, ProgramDirectories::stages.learned).c_str(),
 						ProgramDirectories::getPathToFile(wordToMove, currentLanguage, ProgramDirectories::stages.unlearned).c_str()))
@@ -77,7 +77,7 @@ void getRandomWordsFromLearned(wstring&)
 			{
 				for (int i = 0; i < wordsToMove.size() - amount; i++)
 				{
-					wstring remainingWord = randomWstring(wordsToMove);
+					wstring remainingWord = randomWstringFromArray(wordsToMove);
 					removeElement(remainingWord, wordsToMove);
 				}
 
