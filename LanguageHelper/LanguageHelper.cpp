@@ -10,8 +10,7 @@ int main(int argc, char* argv[])
 {
 	ProgramDirectories::getProgramDirectories();
 
-	if (argc == 1)
-	{
+	if (argc == 1) {
 		vector<wstring> options = { L"View saved words" , L"Testing" , L"Manage words" , L"Properties" };
 		vector<void (*)(wstring&)> functions = { wordsLanguageToView, wordsLanguageToTest , wordsLanguageToManage , propertiesMenu };
 		wstring selectText = L"Select an action";
@@ -32,8 +31,7 @@ int main(int argc, char* argv[])
 
 		languageHelperMenu.cyclicSelect();
 	}
-	else
-	{
+	else {
 		wcout << L"An invalid command" << endl;
 		return INT_MIN;
 	}

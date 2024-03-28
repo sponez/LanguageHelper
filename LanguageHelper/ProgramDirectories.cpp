@@ -45,7 +45,6 @@ void ProgramDirectories::getProgressFiles()
 {
 	programFiles.successSave = L"CorrectAnswers.save";
 	programFiles.usedWords = L"UsedWords.save";
-	programFiles.unpassedWords = L"UnpassedWords.save";
 }
 
 void ProgramDirectories::getPropertiesFile()
@@ -163,7 +162,6 @@ void ProgramDirectories::checkProgressFiles()
 	{
 		vector<wstring> words;
 		map<wstring, int> successSaveMap;
-		vector<wstring> unpassedWordsArray;
 		vector<wstring> usedWordsArray;
 
 		getEntries(getPathToDirectory(checkLanguage, stages.unlearned), words);
@@ -177,21 +175,6 @@ void ProgramDirectories::checkProgressFiles()
 				_wsystem(L"pause");
 
 				_wremove(getPathToFile(programFiles.successSave, checkLanguage).c_str());
-				_wremove(getPathToFile(programFiles.unpassedWords, checkLanguage).c_str());
-				_wremove(getPathToFile(programFiles.usedWords, checkLanguage).c_str());
-			}
-		}
-
-		getVectorFromWfile(getPathToFile(programFiles.unpassedWords, checkLanguage), unpassedWordsArray);
-		for (vector<wstring>::iterator vecIt = unpassedWordsArray.begin(); vecIt != unpassedWordsArray.end(); vecIt++)
-		{
-			if (find(words.begin(), words.end(), *vecIt) == words.end())
-			{
-				wcout << L"Progress files have broken. Progress lost." << endl;
-				_wsystem(L"pause");
-
-				_wremove(getPathToFile(programFiles.successSave, checkLanguage).c_str());
-				_wremove(getPathToFile(programFiles.unpassedWords, checkLanguage).c_str());
 				_wremove(getPathToFile(programFiles.usedWords, checkLanguage).c_str());
 			}
 		}
@@ -205,7 +188,6 @@ void ProgramDirectories::checkProgressFiles()
 				_wsystem(L"pause");
 
 				_wremove(getPathToFile(programFiles.successSave, checkLanguage).c_str());
-				_wremove(getPathToFile(programFiles.unpassedWords, checkLanguage).c_str());
 				_wremove(getPathToFile(programFiles.usedWords, checkLanguage).c_str());
 			}
 		}
@@ -268,7 +250,6 @@ wstring ProgramDirectories::getPathToFile(wstring file, wstring language, wstrin
 		}
 	}
 	else if (file == programFiles.successSave ||
-		file == programFiles.unpassedWords ||
 		file == programFiles.usedWords)
 	{
 		if (language.empty() || !stage.empty())
@@ -302,14 +283,6 @@ void ProgramDirectories::removeWordFromProgramFiles(wstring word, wstring langua
 	removeWordFromWfile(
 		ProgramDirectories::getPathToFile(
 			ProgramDirectories::programFiles.successSave,
-			language
-		),
-		word
-	);
-
-	removeWordFromWfile(
-		ProgramDirectories::getPathToFile(
-			ProgramDirectories::programFiles.unpassedWords,
 			language
 		),
 		word
@@ -372,6 +345,7 @@ void ProgramDirectories::getProgramDirectories()
 	wstring selectText = L"Select a profile";
 	wconsoleMenu profileSelect(profiles, profileSet, selectText);
 	wconsoleMenu::setFontInfo(30, 30, 30, 1); //Display all characters in console
+	wconsoleMenu::setWindowSize(800, 600); //Standart window size
 
 	profileSelect.singleSelect();
 

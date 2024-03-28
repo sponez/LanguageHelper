@@ -23,8 +23,7 @@ void wordViewer(wstring& word)
 		printVector(translations, L"\n", 1);
 	}
 	else {
-		wcout << L"Translation: ";
-		printVector(translations);
+		wcout << L"Translation is \"" << translations[0] << L"\"\n";
 	}
 
 	_wsystem(L"pause");

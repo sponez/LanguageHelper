@@ -3,16 +3,18 @@
 bool isPathExist(wstring path)
 {
 	struct _stat buf;
-	if (_wstat(&path[0], &buf) == 0)
+
+	if (_wstat(&path[0], &buf) == 0) {
 		return true;
-	else
+	}
+	else {
 		return false;
+	}
 }
 
 void wordToLowerCase(wstring& word)
 {
-	for (int i = 0; i < word.length(); i++)
-	{
+	for (int i = 0; i < word.length(); ++i) {
 		word[i] = tolower(word[i], locale(""));
 	}
 }
@@ -30,38 +32,32 @@ wstring cutTextInBracket(wstring& string)
 	int rightBracketIndex = stringLenght - 1;
 
 	//Find left bracket index
-	while (leftBracketIndex < stringLenght && string[leftBracketIndex] != L'(')
-	{
+	while (leftBracketIndex < stringLenght && string[leftBracketIndex] != L'(') {
 		++leftBracketIndex;
 	}
 
 	//Find right bracket index
-	while (rightBracketIndex >= 0 && string[rightBracketIndex] != L')')
-	{
+	while (rightBracketIndex >= 0 && string[rightBracketIndex] != L')') {
 		--rightBracketIndex;
 	}
 
 	//Check if brackets aren't found
-	if (leftBracketIndex == stringLenght || rightBracketIndex == -1)
-	{
+	if (leftBracketIndex == stringLenght || rightBracketIndex == -1) {
 		return wstring();
 	}
-	else
-	{
+	else {
 		//Find text in brackets
 		wstring textInBracket = string.substr(leftBracketIndex + 1, rightBracketIndex - leftBracketIndex - 1);
 
 		//Find left index to eraise from string
 		int leftIndexToErase = leftBracketIndex;
-		while (leftIndexToErase > 0 && string[leftIndexToErase - 1] == L' ')
-		{
+		while (leftIndexToErase > 0 && string[leftIndexToErase - 1] == L' ') {
 			--leftIndexToErase;
 		}
 
 		//Find right index to eraise from string
 		int rightIndexToErase = rightBracketIndex + 1;
-		while (rightIndexToErase < stringLenght && string[rightIndexToErase] == L' ')
-		{
+		while (rightIndexToErase < stringLenght && string[rightIndexToErase] == L' ') {
 			++rightIndexToErase;
 		}
 
@@ -87,31 +83,28 @@ void getEntries(wstring path, vector<wstring>& emptyList)
 
 void vectorDifference(vector<wstring>& first, vector<wstring>& second, vector<wstring>& result)
 {
-	for (int i = 0; i < first.size(); i++)
-	{
+	for (int i = 0; i < first.size(); ++i) {
 		bool match = false;
 
-		for (int j = 0; j < second.size(); j++)
-		{
-			if (first[i] == second[j])
-			{
+		for (int j = 0; j < second.size(); ++j) {
+			if (first[i] == second[j]) {
 				match = true;
 				break;
 			}
 		}
 
-		if (!match) result.push_back(first[i]);
+		if (!match) {
+			result.push_back(first[i]);
+		}
 	}
 }
 
 wstring randomWstringFromArray(vector<wstring>& wstringArray)
 {
-	if (wstringArray.empty())
-	{
+	if (wstringArray.empty()) {
 		return wstring();
 	}
-	else
-	{
+	else {
 		int randomIndex = radnomNumber() % wstringArray.size();
 		return wstringArray[randomIndex];
 	}
@@ -121,7 +114,7 @@ vector<void (*)(wstring&)> functionMultiplier(void (*function)(wstring&), short 
 {
 	vector<void (*)(wstring&)> functions;
 
-	for (short i = 0; i < amount; i++) {
+	for (short i = 0; i < amount; ++i) {
 		functions.push_back(function);
 	}
 
@@ -133,9 +126,9 @@ void shuffleVector(vector<wstring>& vectorForShuffle)
 	vector<wstring> auxiliaryVector = vectorForShuffle;
 	vectorForShuffle.clear();
 
-	while (!auxiliaryVector.empty())
-	{
+	while (!auxiliaryVector.empty()) {
 		int randomIndex = radnomNumber() % auxiliaryVector.size();
+
 		vectorForShuffle.push_back(auxiliaryVector[randomIndex]);
 		auxiliaryVector.erase(auxiliaryVector.begin() + randomIndex);
 	}
@@ -150,8 +143,7 @@ void getVectorFromWfile(wstring filePath, vector<wstring>& emptyVector, bool rem
 	wifstream sourseFile(filePath);
 	sourseFile.imbue(locale(sourseFile.getloc(), new codecvt_utf8<wchar_t, 0x10ffff, consume_header>()));
 
-	for (wstring word; getline(sourseFile, word);)
-	{
+	for (wstring word; getline(sourseFile, word);) {
 		if (removeBracket) {
 			cutTextInBracket(word);
 		}
@@ -167,9 +159,8 @@ void saveVectorToWfile(wstring filePath, vector<wstring>& sourseVector)
 	wofstream targetFile(filePath);
 	targetFile.imbue(locale(targetFile.getloc(), new codecvt_utf8<wchar_t, 0x10ffff, consume_header>()));
 
-	for (wstring word: sourseVector)
-	{
-		targetFile << word << endl;
+	for (wstring word: sourseVector) {
+		targetFile << word << L'\n';
 	}
 
 	targetFile.close();
@@ -180,8 +171,8 @@ void removeWordFromWfile(wstring filePath, wstring word)
 	vector<wstring> lines;
 
 	getVectorFromWfile(filePath, lines);
-	for (int i = 0; i < lines.size(); i++)
-	{
+
+	for (int i = 0; i < lines.size(); ++i) {
 		wstring rawLine = wstring(lines[i]);
 		size_t separatorPosition = rawLine.find(L'>');
 
@@ -199,14 +190,16 @@ void removeWordFromWfile(wstring filePath, wstring word)
 
 void getMapFromWfile(wstring filePath, map<wstring, int>& emptyMap)
 {
-	if (!isPathExist(filePath)) return;
+	if (!isPathExist(filePath)) {
+		return;
+	}
 
 	wifstream sourseFile(filePath);
 	sourseFile.imbue(std::locale(sourseFile.getloc(), new codecvt_utf8<wchar_t, 0x10ffff, consume_header>()));
 
-	for (wstring wstr; getline(sourseFile, wstr, L'>');)
-	{
+	for (wstring wstr; getline(sourseFile, wstr, L'>');) {
 		wstring counter;
+
 		getline(sourseFile, counter);
 		emptyMap.insert(pair<wstring, int>(wstr, stoi(counter)));
 	}
@@ -219,8 +212,9 @@ void saveMapToWfile(wstring filePath, map<wstring, int>& sourseMap)
 	wofstream targetFile(filePath);
 	targetFile.imbue(std::locale(targetFile.getloc(), new codecvt_utf8<wchar_t, 0x10ffff, consume_header>()));
 
-	for (map<wstring, int>::iterator it = sourseMap.begin(); it != sourseMap.end(); it++)
-		targetFile << it->first << L'>' << it->second << endl;
+	for (map<wstring, int>::iterator it = sourseMap.begin(); it != sourseMap.end(); ++it) {
+		targetFile << it->first << L'>' << it->second << L'\n';
+	}
 
 	targetFile.close();
 }
@@ -259,14 +253,14 @@ void printVector(vector<wstring>& vector, wstring separator, int listingType, bo
 	}
 }
 
-void printTranslations(vector<wstring> translations)
+void printTranslations(vector<wstring>& translations)
 {
 	if (translations.size() == 1) {
-		wcout << L"Correct is " << translations[0] << endl;
+		wcout << L"Correct is \"" << translations[0] << L"\"\n";
 	}
 	else {
-		wcout << L"One of the following is correct:" << endl;
-		printVector(translations);
+		wcout << L"One of the following is correct:" << L'\n';
+		printVector(translations, L"\n", 1);
 	}
 }
 
@@ -276,8 +270,7 @@ bool sucsessFeedback(wstring& answer, vector<wstring>& translations)
 	double equalDistance = 0.0;
 	double successDistance = 0.34;
 
-	for (wstring translation : translations)
-	{
+	for (wstring translation : translations) {
 		wstring translationWithoutBrackets = wstring(translation);
 		cutTextInBracket(translationWithoutBrackets);
 
@@ -286,24 +279,26 @@ bool sucsessFeedback(wstring& answer, vector<wstring>& translations)
 	}
 
 	if (minDistance == equalDistance) {
-		wcout << L"Absolutely correct!" << endl;
+		wcout << L"Absolutely correct!" << L'\n';
 		printTranslations(translations);
 		_wsystem(L"pause");
 
 		return true;
 	}
 	else if (minDistance <= successDistance) {
-		wcout << L"Almost correct." << endl;
+		wcout << L"Almost correct." << L'\n';
 		printTranslations(translations);
-		wcout << L"But it will be scored!" << endl;
+		wcout << L"But it will be scored!" << L'\n';
+
 		_wsystem(L"pause");
 
 		return true;
 	}
 	else {
-		wcout << L"Nope." << endl;
+		wcout << L"Nope." << L'\n';
 		printTranslations(translations);
-		wcout << L"It won't be scored!" << endl;
+		wcout << L"It won't be scored!" << L'\n';
+
 		_wsystem(L"pause");
 
 		return false;
@@ -312,10 +307,11 @@ bool sucsessFeedback(wstring& answer, vector<wstring>& translations)
 
 void addAllPairsCorrespondencesToSetFrom(wstring path, set<pair<wstring, wstring>>& correspondences, bool reverseOrder)
 {
-	if (!isPathExist(path)) return;
+	if (!isPathExist(path)) {
+		return;
+	}
 
-	for (auto const& fileIterator : filesystem::directory_iterator{ path })
-	{
+	for (auto const& fileIterator : filesystem::directory_iterator{ path }) {
 		wstring word = fileIterator.path().filename();
 		wstring wordPath = path + L"\\" + word;
 		vector<wstring> translations;
@@ -351,8 +347,7 @@ bool transmitElement(wstring element, vector<wstring>& sourseVector, vector<wstr
 {
 	vector<wstring>::iterator elementIt = find(sourseVector.begin(), sourseVector.end(), element);
 
-	if (elementIt != sourseVector.end())
-	{
+	if (elementIt != sourseVector.end()) {
 		sourseVector.erase(elementIt);
 		targetvector.push_back(element);
 		return true;
@@ -365,8 +360,7 @@ bool removeElement(wstring element, vector<wstring>& sourseVector)
 {
 	vector<wstring>::iterator elementIt = find(sourseVector.begin(), sourseVector.end(), element);
 
-	if (elementIt != sourseVector.end())
-	{
+	if (elementIt != sourseVector.end()) {
 		sourseVector.erase(elementIt);
 		return true;
 	}

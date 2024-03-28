@@ -31,7 +31,6 @@ private:
 		wstring languagesConfig;
 		wstring successSave;
 		wstring usedWords;
-		wstring unpassedWords;
 		wstring properties;
 	};
 

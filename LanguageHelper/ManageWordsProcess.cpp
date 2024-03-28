@@ -33,67 +33,65 @@ void getRandomWordsFromLearned(wstring&)
 	vector<wstring> wordsToMove;
 
 	getEntries(ProgramDirectories::getPathToDirectory(currentLanguage, ProgramDirectories::stages.learned), wordsToMove);
-	if (wordsToMove.size() > 0)
-	{
+	if (wordsToMove.size() > 0) {
 		wcout << L"Enter an amount of words from 1 to " << wordsToMove.size() << L": ";
-		if (wcin >> amount)
-		{
-			wcin.ignore(LLONG_MAX, '\n');
 
-			if (amount <= 0)
-			{
+		if (wcin >> amount) {
+			wcin.ignore(LLONG_MAX, L'\n');
+
+			if (amount <= 0) {
 				_wsystem(L"cls");
-				wcout << L"An invalid operation." << endl;
+				wcout << L"An invalid operation." << L'\n';
 				_wsystem(L"pause");
 				return;
 			}
 
-			if (amount > wordsToMove.size())
-			{
+			if (amount > wordsToMove.size()) {
 				_wsystem(L"cls");
-				wcout << L"Too much. All words will be moved." << endl;
+				wcout << L"Too much. All words will be moved." << L'\n';
 				_wsystem(L"pause");
 
 				amount = wordsToMove.size();
 			}
 
-			if (amount <= (wordsToMove.size() + 1) / 2)
-			{
-				for (int i = 0; i < amount; i++)
-				{
+			if (amount <= (wordsToMove.size() + 1) / 2) {
+				for (int i = 0; i < amount; ++i) {
 					wstring wordToMove = randomWstringFromArray(wordsToMove);
 
-					if (!MoveFileW(ProgramDirectories::getPathToFile(wordToMove, currentLanguage, ProgramDirectories::stages.learned).c_str(),
-						ProgramDirectories::getPathToFile(wordToMove, currentLanguage, ProgramDirectories::stages.unlearned).c_str()))
-					{
-						wcout << L"The word \"" << wordToMove << L"\" didn't moved" << endl;
+					if (
+						!MoveFileW(
+							ProgramDirectories::getPathToFile(wordToMove, currentLanguage, ProgramDirectories::stages.learned).c_str(),
+							ProgramDirectories::getPathToFile(wordToMove, currentLanguage, ProgramDirectories::stages.unlearned).c_str()
+						)
+					) {
+						wcout << L"The word \"" << wordToMove << L"\" didn't moved" << L'\n';
 						_wsystem(L"pause");
 					}
 
 					removeElement(wordToMove, wordsToMove);
 				}
 			}
-			else
-			{
-				for (int i = 0; i < wordsToMove.size() - amount; i++)
-				{
+			else {
+				for (int i = 0; i < wordsToMove.size() - amount; ++i) {
 					wstring remainingWord = randomWstringFromArray(wordsToMove);
 					removeElement(remainingWord, wordsToMove);
 				}
 
-				for (wstring wordToMove: wordsToMove)
-				{
-					if (!MoveFileW(ProgramDirectories::getPathToFile(wordToMove, currentLanguage, ProgramDirectories::stages.learned).c_str(),
-						ProgramDirectories::getPathToFile(wordToMove, currentLanguage, ProgramDirectories::stages.unlearned).c_str()))
-					{
-						wcout << L"The word \"" << wordToMove << L"\" didn't moved" << endl;
+				for (wstring wordToMove: wordsToMove) {
+					if (
+						!MoveFileW(
+							ProgramDirectories::getPathToFile(wordToMove, currentLanguage, ProgramDirectories::stages.learned).c_str(),
+							ProgramDirectories::getPathToFile(wordToMove, currentLanguage, ProgramDirectories::stages.unlearned).c_str()
+						)
+					) {
+						wcout << L"The word \"" << wordToMove << L"\" didn't moved" << L'\n';
 						_wsystem(L"pause");
 					}
 				}
 			}
 
 			_wsystem(L"cls");
-			wcout << L"Done!" << endl;
+			wcout << L"Done!" << L'\n';
 			_wsystem(L"pause");
 		}
 		else
@@ -101,7 +99,7 @@ void getRandomWordsFromLearned(wstring&)
 			wcin.ignore(LLONG_MAX, '\n');
 
 			_wsystem(L"cls");
-			wcout << L"Something went wrong." << endl;
+			wcout << L"Something went wrong." << L'\n';
 			_wsystem(L"pause");
 			return;
 		}
@@ -113,18 +111,16 @@ void addTranslationsManual(wstring& word, wstring& wordPath, vector<wstring>& tr
 	_wsystem(L"cls");
 
 	vector<wstring> translationsWithoutBrackets;
-	for (wstring translation : translations)
-	{
+	for (wstring translation : translations) {
 		cutTextInBracket(translation);
 		translationsWithoutBrackets.push_back(translation);
 	}
 
-	while (true)
-	{
+	while (true) {
 		wstring translation;
 		wstring textInBrackets;
 
-		wcout << L"Leave empty to exit." << endl;
+		wcout << L"Leave empty to exit." << L'\n';
 		wcout << L"Enter a translation: ";
 
 		getline(wcin, translation);
@@ -137,13 +133,11 @@ void addTranslationsManual(wstring& word, wstring& wordPath, vector<wstring>& tr
 		wordToLowerCase(translation);
 		textInBrackets = cutTextInBracket(translation);
 
-		if (!contains(translationsWithoutBrackets, translation))
-		{
+		if (!contains(translationsWithoutBrackets, translation)) {
 			translationsWithoutBrackets.push_back(translation);
 			translations.push_back(standartTranslationForm(translation, textInBrackets));
 
-			if (translation.length() <= MAX_WORD_LENGTH)
-			{
+			if (translation.length() <= MAX_WORD_LENGTH) {
 				wstring reverseWordPath;
 				vector<wstring> reverseTranslations;
 				vector<wstring> reverseTranslationsWithoutBrackets;
@@ -152,40 +146,40 @@ void addTranslationsManual(wstring& word, wstring& wordPath, vector<wstring>& tr
 				getVectorFromWfile(reverseWordPath, reverseTranslations);
 				getVectorFromWfile(reverseWordPath, reverseTranslationsWithoutBrackets, true);
 
-				if (!contains(reverseTranslationsWithoutBrackets, word))
-				{
+				if (!contains(reverseTranslationsWithoutBrackets, word)) {
 					wstring question = L"Add translation \"" + word + L"\" into the word \"" + translation + L"\"?";
-					if (askQuestion(question))
-					{
+
+					if (askQuestion(question)) {
 						wstring newReverseTranslation;
-						if (textInBrackets.length() > 0 && askQuestion(L"Add brackets with text \"" + textInBrackets + L"\"?"))
-						{
+
+						if (textInBrackets.length() > 0 && askQuestion(L"Add brackets with text \"" + textInBrackets + L"\"?")) {
 							newReverseTranslation = standartTranslationForm(word, textInBrackets);
 						}
-						else
-						{
+						else {
 							newReverseTranslation = wstring(word);
 						}
 
 						reverseTranslations.push_back(newReverseTranslation);
+						sort(reverseTranslations.begin(), reverseTranslations.end());
 						saveVectorToWfile(reverseWordPath, reverseTranslations);
 					}
 				}
 			}
 		}
-		else
-		{
-			wcout << L"Already exist." << endl;
+		else {
+			wcout << L"Already exist." << L'\n';
 			_wsystem(L"pause");
 		}
 
 		_wsystem(L"cls");
 	}
 
-	if (translations.size() != 0) { saveVectorToWfile(wordPath, translations); }
-	else
-	{
-		wcout << L"There is no one translation. Nothing added" << endl;
+	if (translations.size() != 0) {
+		sort(translations.begin(), translations.end());
+		saveVectorToWfile(wordPath, translations);
+	}
+	else {
+		wcout << L"There is no one translation. Nothing added" << L'\n';
 		_wsystem(L"pause");
 	}
 }
@@ -199,16 +193,14 @@ void addWordFunction(wstring&)
 	wcout << L"Enter the word: ";
 	getline(wcin, word);
 
-	if (word.length() == 0)
-	{
-		wcout << L"Empty word" << endl;
+	if (word.length() == 0) {
+		wcout << L"Empty word" << L'\n';
 		_wsystem(L"pause");
 		return;
 	}
 
-	if (word.length() > MAX_WORD_LENGTH)
-	{
-		wcout << L"Too long word" << endl;
+	if (word.length() > MAX_WORD_LENGTH) {
+		wcout << L"Too long word" << L'\n';
 		_wsystem(L"pause");
 		return;
 	}
@@ -223,25 +215,28 @@ void addWordFunction(wstring&)
 		wcout << L"Word \"" << word << L'\"';
 		wcout << L" with translations: { ";
 		printVector(translations, L", ", false);
-		wcout << L" } already exist." << endl;
+		wcout << L" } already exist." << L'\n';
 		_wsystem(L"pause");
 
-		if (!askQuestion(L"Would you like to add new translations?")) return;
+		if (!askQuestion(L"Would you like to add new translations?")) {
+			return;
+		}
 	}
 	else if (isPathExist(ProgramDirectories::getPathToFile(word, currentLanguage, ProgramDirectories::reverseStage(currentStage))))
 	{
-		if (askQuestion(L"This word already in learned folder. Would you like to return back into unlearned?"))
-		{
+		if (askQuestion(L"This word already in learned folder. Would you like to return back into unlearned?")) {
 			MoveFileW(ProgramDirectories::getPathToFile(word, currentLanguage, ProgramDirectories::stages.learned).c_str(), wordPath.c_str());
 			getVectorFromWfile(wordPath, translations);
 
 			wcout << L"Word \"" << word << L'\"';
 			wcout << L" with translations: { ";
 			printVector(translations, L", ", false);
-			wcout << L" } moved to unlearned." << endl;
+			wcout << L" } moved to unlearned." << L'\n';
 			_wsystem(L"pause");
 
-			if (!askQuestion(L"Would you like to add new translations?")) return;
+			if (!askQuestion(L"Would you like to add new translations?")) {
+				return;
+			}
 		}
 	}
 
@@ -273,7 +268,7 @@ void deleteTranslationManual(wstring& word, wstring& wordPath, vector<wstring>& 
 				}
 				else
 				{
-					wcout << L"Translations for the word \"" << translationToDeleteWithoutBrackets << L"\" didn't remain. It will be deleted." << endl;
+					wcout << L"Translations for the word \"" << translationToDeleteWithoutBrackets << L"\" didn't remain. It will be deleted." << L'\n';
 					_wsystem(L"pause");
 					_wremove(reverseWordPath.c_str());
 					ProgramDirectories::removeWordFromProgramFiles(translationToDeleteWithoutBrackets, ProgramDirectories::reverseLanguage(currentLanguage));
@@ -308,7 +303,7 @@ void deleteWordFunction(wstring&)
 		ProgramDirectories::removeWordFromProgramFiles(*currentWordPointer, currentLanguage);
 	}
 
-	wcout << "Done!" << endl;
+	wcout << "Done!" << L'\n';
 	_wsystem(L"pause");
 }
 
@@ -328,7 +323,7 @@ void moveToUnlearned(wstring&)
 		).c_str()
 	);
 
-	wcout << "Done!" << endl;
+	wcout << "Done!" << L'\n';
 	_wsystem(L"pause");
 }
 
@@ -348,7 +343,7 @@ void translationEditorFunction(wstring& optionName)
 	getVectorFromWfile(wordPath, translations);
 	if (translations.size() == 0)
 	{
-		wcout << "Translations not found! The word will be deleted." << endl;
+		wcout << "Translations not found! The word will be deleted." << L'\n';
 		_wsystem(L"pause");
 		_wremove(ProgramDirectories::getPathToFile(*currentWordPointer, currentLanguage, currentStage).c_str());
 		return;
@@ -374,6 +369,8 @@ void translationEditorFunction(wstring& optionName)
 			wconsoleMenu::consoleWstringEditor(*currentTranslationPointer);
 
 			wstring newTranslation = wstring(*currentTranslationPointer);
+			wordToLowerCase(newTranslation);
+
 			wstring newTextInBracket = cutTextInBracket(newTranslation);
 
 			if (newTranslation == oldTranslation && newTextInBracket == oldTextInBracket)
@@ -384,7 +381,7 @@ void translationEditorFunction(wstring& optionName)
 
 			if (newTranslation.empty())
 			{
-				wcout << L"Translation can not be empty" << endl;
+				wcout << L"Translation can not be empty" << L'\n';
 				_wsystem(L"pause");
 
 				*currentTranslationPointer = standartTranslationForm(oldTranslation, oldTextInBracket);
@@ -486,7 +483,7 @@ void translationEditorFunction(wstring& optionName)
 
 			if (translations.size() == 0)
 			{
-				wcout << L"You have removed all existed translations. The word will be deleted." << endl;
+				wcout << L"You have removed all existed translations. The word will be deleted." << L'\n';
 				_wsystem(L"pause");
 				_wremove(wordPath.c_str());
 				return;
@@ -538,7 +535,7 @@ void displayTranslations(wstring&)
 		getVectorFromWfile(pathToWord, translations);
 		if (translations.size() == 0)
 		{
-			wcout << "Translations not found! The word will be deleted." << endl;
+			wcout << "Translations not found! The word will be deleted." << L'\n';
 			_wsystem(L"pause");
 			_wremove(pathToWord.c_str());
 			return;
@@ -579,7 +576,7 @@ void ranameWordFunction(wstring&)
 	if (*currentWordPointer == oldWord) { return; }
 	if (currentWordPointer->empty())
 	{
-		wcout << L"Word can not be empty" << endl;
+		wcout << L"Word can not be empty" << L'\n';
 		_wsystem(L"pause");
 
 		*currentWordPointer = oldWord;
@@ -587,7 +584,7 @@ void ranameWordFunction(wstring&)
 	}
 	if (currentWordPointer->length() > MAX_WORD_LENGTH)
 	{
-		wcout << L"Word too long" << endl;
+		wcout << L"Word too long" << L'\n';
 		_wsystem(L"pause");
 
 		*currentWordPointer = oldWord;
@@ -609,7 +606,7 @@ void ranameWordFunction(wstring&)
 			)
 		)
 	) {
-		wcout << L"Word already exist" << endl;
+		wcout << L"Word already exist" << L'\n';
 		_wsystem(L"pause");
 
 		*currentWordPointer = oldWord;
@@ -720,7 +717,7 @@ void displayAllSavedWordsToEdit(wstring&)
 		getEntries(ProgramDirectories::getPathToDirectory(currentLanguage, currentStage), words);
 		if (words.size() == 0)
 		{
-			wcout << "Words not found!" << endl;
+			wcout << "Words not found!" << L'\n';
 			_wsystem(L"pause");
 			return;
 		}
