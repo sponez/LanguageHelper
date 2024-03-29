@@ -282,7 +282,7 @@ void partitionLearning(wstring&) {
 			wordViewer(currentWord);
 			_wsystem(L"cls");
 
-			if (globalIndex < allWords.size()) {
+			if (globalIndex + 1 < allWords.size()) {
 				++globalIndex;
 			}
 			else {
